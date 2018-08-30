@@ -1,27 +1,27 @@
 language: go
 install: true
 go:
-- '1.10'
+- '1.11'
 script:
 - export PUBDIR=$HOME/publish
 - mkdir $PUBDIR
 - go test -v ./...
-- CGO_ENABLED=0 GOOS=linux GO_ARCH=amd64 go build -x -ldflags "-X main.VERSION $(./version.sh)" -a -installsuffix cgo -o $PUBDIR/chef-waiter
-- CGO_ENABLED=0 GOOS=windows GO_ARCH=amd64 go build -x -ldflags "-X main.VERSION $(./version.sh)" -a -installsuffix cgo -o $PUBDIR/chef-waiter.exe
-before_deploy:
-- git config --local user.name "Travis"
-- git config --local user.email "randy.coburn@newvoicemedia.com"
-- git tag "$(./travis-tester)" --force
-deploy:
-  provider: releases
-  api_key:
-    secure: aEuc02xkoyqnB2EcaPZKRoVlNqnT/QjqSEfBWJ/MKC82CtVKo7iqWD1TSm2IDy3P9BoxNIFrcQOOFODArjPTDkpelU6HNWcB7svqdUCVITjqVJ0E3OQInA10/o9iuLHqtFXBZNqdX0OKu9Rv7IlKjjmvbBSrj/ccmrz5T7fr8IsuZR6YqMSjfBZGFNN3kGSbeRpNGJYnsRa7R7kYRkyadjGLj38R0xm0uSEXiX/jqPzlp8Wm31mHYWPRbslyYfbwySpDKbc8SLEo/K88qAj8+OvJnJS6GmW0nj0jPEwjwQyVmurllWwIlxmUPGoMl/iX7e/VnCohR5QsREaYkngS09Add6NabhX1XjtMHzy0jjtpgYOkRHMXNmFUS+jzzcMxYt/eb9lPpfDpuiLjWdZ4G+maTuyhRUK5Obaj69ee1hW60ejxUD7BKf1JfC2ui86O1Py4B85YxatZI+/dVkvVXYL45KHOCmNJfqdo+qHlp8Qlahoi8kJzTAOx5RqdhvW6LQ9lO7wWViw4ZWNp1WnXasi+H5NAaDtiiPoaUfmyK1brVOKe0coMLNicKez9lQvgl2K8covyhjLEJTxNsjSDxGcsaItRDz4udLH11bq48C7f3Gi8L2oSe1Zzx43RFSIevk4eda9bdBRUYMHZYoEg1+xjy+/wS44WuH58as+Ktgg=
-  file: 
-    - publish/*
-  file_glob: true
-  skip_cleanup: true
-  on:
-    repo: newvoicemedia/chef-waiter
+- ./build.sh -n -u -l -w
+#before_deploy:
+#- cp ./artifacts/*.tar.gz ./publish 
+#- git config --local user.name "Travis"
+#- git config --local user.email "randy.coburn@newvoicemedia.com"
+#- git tag "$(./build.sh -v)" --force
+#deploy:
+#  provider: releases
+#  api_key:
+#    secure: 
+#  file: 
+#    - publish/*
+#  file_glob: true
+#  skip_cleanup: true
+#  on:
+#    repo: newvoicemedia/chef-waiter
 notifications:
   email:
   - randy.coburn@newvoicemedia.com

@@ -18,8 +18,10 @@ OUT_DIR=./artifacts
 SCRIPT_PATH=$0
 
 # Triggers
-SHOW_VERSION=0
+SHOW_VERSION_LONG=0
+SHOW_VERSION_SHORT=0
 UPDATE_VERSION=0
+TAR_FILES=0
 
 while test $# -gt 0; do
   case $1 in
@@ -27,6 +29,7 @@ while test $# -gt 0; do
       # Show help message
       echo "-w: Builds the windows binary."
       echo "-l: Builds the Linux binary."
+      echo "-t: Tar and gzip files that are compiled."
       echo "-x86: Sets the builds to be 32bit."
       echo "--output-name=<bin name>: Sets the output binary to be what is supplied. Windows binarys will have a .exe suffix add to it."
       echo "--output-dir=</path/to/dir>: Sets the output directory for built binaries."
@@ -46,8 +49,16 @@ while test $# -gt 0; do
       BUILD_LINUX=1
       shift
       ;;
+    -t)
+      TAR_FILES=1
+      shift
+      ;;
     -v)
-      SHOW_VERSION=1
+      SHOW_VERSION_SHORT=1
+      shift
+      ;;
+    --version)
+      SHOW_VERSION_LONG=1
       shift
       ;;
     -x86)
@@ -101,8 +112,8 @@ fi
 
 # Setup functions
 ensure_artifact_dir(){
-  if [ ! -d $OUT_DIR ]; then
-    mkdir -p $OUT_DIR/$1
+  if [ ! -d $1 ]; then
+    mkdir -p $1
     if [ $? -ne 0 ]; then
       echo "Failed to create the output directory: ${OUT_DIR}"
     fi
@@ -143,8 +154,13 @@ build_bin() {
 }
 
 # Show version
-if [ $SHOW_VERSION -eq 1 ]; then
-  echo "version to be set: ${VERSION}"
+if [ $SHOW_VERSION_LONG -eq 1 ]; then
+  echo "Current version number in build script: ${VERSION}"
+  exit 0
+fi
+
+if [ $SHOW_VERSION_SHORT -eq 1 ]; then
+  echo "v$VERSION"
   exit 0
 fi
 
@@ -158,8 +174,14 @@ if [ $UPDATE_VERSION -eq 1 ]; then
 
   if [ $? -eq 0 ]; then
     echo "Committing updated build script to git."
+    echo "WARNING: This commit will be skipped by CI."
     git add $SCRIPT_PATH \
-    && git commit -m "BUILD_SCRIPT: changing version number for build script to ${VERSION}."
+    && git commit -m "[skip ci] BUILD_SCRIPT: Changing version number for build script to ${VERSION}." \
+    && git push
+
+    if [ $? -ne 0 ]; then
+      echo "Something went wrong while pushing the new version numbers"
+    fi
   fi
 fi
 
@@ -167,7 +189,17 @@ if [ $BUILD_LINUX -eq 1 ]; then
   build_bin "linux"
 fi
 
-if [ $BUILD_WINDOWS -eq 1 ];then
+if [ $BUILD_WINDOWS -eq 1 ]; then
   build_bin "windows"
 fi
 
+if [ $TAR_FILES -eq 1 ]; then
+  echo "Starting compression of binaries"
+  cd $OUT_DIR
+  for d in $(ls); do
+    echo "starting tar and gzip on $d"
+    tar -czvf $d.tar.gz $d
+  done
+fi
+
+echo "Finished."
