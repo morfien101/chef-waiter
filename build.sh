@@ -3,7 +3,7 @@
 # Set version
 VERSION_MAJOR=1
 VERSION_MINOR=0
-VERSION_PATCH=6
+VERSION_PATCH=1
 VERSION_SPECIAL=
 VERSION=""
 
@@ -11,8 +11,8 @@ VERSION=""
 export GO_ARCH=amd64
 export CGO_ENABLED=0
 
-BUILDWINDOWS=0
-BUILDLINUX=0
+BUILD_WINDOWS=0
+BUILD_LINUX=0
 BIN_NAME="chef-waiter"
 OUT_DIR=./artifacts
 SCRIPT_PATH=$0
@@ -39,11 +39,11 @@ while test $# -gt 0; do
       shift
       ;;
     -w)
-      BUILDWINDOWS=1
+      BUILD_WINDOWS=1
       shift
       ;;
     -l)
-      BUILDLINUX=1
+      BUILD_LINUX=1
       shift
       ;;
     -v)
@@ -80,7 +80,7 @@ while test $# -gt 0; do
       ;;
     -n|--next-minor)
       let VERSION_PATCH+=1
-      echo "Setting Patch number to ${VERSION_PATCH}"
+      echo "Setting Patch number to: ${VERSION_PATCH}"
       shift
       ;;
     -u|--update-version)
@@ -98,6 +98,49 @@ VERSION=$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH
 if [ "$SPECIAL" != "" ]; then
   VERSION=$VERSION-$VERSION_SPECIAL;
 fi
+
+# Setup functions
+ensure_artifact_dir(){
+  if [ ! -d $OUT_DIR ]; then
+    mkdir -p $OUT_DIR/$1
+    if [ $? -ne 0 ]; then
+      echo "Failed to create the output directory: ${OUT_DIR}"
+    fi
+  fi
+}
+
+build_bin() {
+  # Set GOOS
+  goos=$1
+  
+  # Set the binary name
+  bin_name=$BIN_NAME
+  if [ $1 == "windows" ]; then
+    bin_name="$BIN_NAME.exe"
+  fi
+
+  # Setup where it should go
+  outdir=$OUT_DIR/$BIN_NAME-$goos-$GO_ARCH-v$VERSION
+  output=$outdir/$bin_name
+
+  # Ensure the artifact directory is there
+  ensure_artifact_dir $outdir
+
+  # Start the build
+  GOOS=$goos \
+  go build \
+  -ldflags "-X main.VERSION=$VERSION" \
+  -a \
+  -installsuffix cgo \
+  -o $output
+
+  # Check if it worked
+  if [ $? -eq 0 ]; then
+    echo "Binary built and store as: $output"
+  else
+    echo "Binary for $goos failed to build!"
+  fi
+}
 
 # Show version
 if [ $SHOW_VERSION -eq 1 ]; then
@@ -118,5 +161,13 @@ if [ $UPDATE_VERSION -eq 1 ]; then
     git add $SCRIPT_PATH \
     && git commit -m "BUILD_SCRIPT: changing version number for build script to ${VERSION}."
   fi
+fi
+
+if [ $BUILD_LINUX -eq 1 ]; then
+  build_bin "linux"
+fi
+
+if [ $BUILD_WINDOWS -eq 1 ];then
+  build_bin "windows"
 fi
 
