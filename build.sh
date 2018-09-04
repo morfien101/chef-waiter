@@ -163,7 +163,7 @@ function travis-branch-commit() {
   commit_message=$1
   files_to_commit=""
   for i in ${@:2}; do
-    files="$files_to_commit \"$i\""
+    files_to_commit="$files_to_commit \"$i\""
   done
   
   head_ref=$(git rev-parse HEAD)
