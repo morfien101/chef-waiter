@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/kardianos/service"
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 // VERSION holds the version of the program

@@ -3,8 +3,8 @@ package chefrunner
 import (
 	"fmt"
 
-	"github.com/newvoicemedia/chef-waiter/cmd"
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/cmd"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 // runChef - will run the command based on the OS

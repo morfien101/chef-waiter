@@ -9,9 +9,9 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 
-	"github.com/newvoicemedia/chef-waiter/cheflogs"
-	"github.com/newvoicemedia/chef-waiter/config"
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/cheflogs"
+	"github.com/morfien101/chef-waiter/config"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 // StatusDetails - Holds data about indiviual runs.

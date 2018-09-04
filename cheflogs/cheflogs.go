@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/newvoicemedia/chef-waiter/config"
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/config"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 // WorkerReadWriter is both a WorkerReader and a WorkerWriter

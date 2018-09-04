@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 const statefile = "stateTable.db"

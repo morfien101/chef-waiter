@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 func generateFileContent() []*ValuesContainer {

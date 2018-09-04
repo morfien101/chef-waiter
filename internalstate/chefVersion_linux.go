@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/newvoicemedia/chef-waiter/cmd"
+	"github.com/morfien101/chef-waiter/cmd"
 )
 
 func chefVersion() (string, error) {

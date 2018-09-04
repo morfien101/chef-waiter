@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 // AppStatusHandler - Hosts the AppStatus in a mutexable struct.

@@ -9,11 +9,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/newvoicemedia/chef-waiter/cheflogs"
-	"github.com/newvoicemedia/chef-waiter/chefrunner"
-	"github.com/newvoicemedia/chef-waiter/config"
-	"github.com/newvoicemedia/chef-waiter/internalstate"
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/cheflogs"
+	"github.com/morfien101/chef-waiter/chefrunner"
+	"github.com/morfien101/chef-waiter/config"
+	"github.com/morfien101/chef-waiter/internalstate"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 type FakeAppStatus struct {

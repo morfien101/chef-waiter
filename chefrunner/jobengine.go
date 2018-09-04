@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/newvoicemedia/chef-waiter/cheflogs"
-	"github.com/newvoicemedia/chef-waiter/internalstate"
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/cheflogs"
+	"github.com/morfien101/chef-waiter/internalstate"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 // Request is a RunRequest that is used to push messaged to a queue which will trigger runs.

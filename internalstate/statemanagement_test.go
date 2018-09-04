@@ -3,7 +3,7 @@ package internalstate
 import (
 	"testing"
 
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/logs"
 	uuid "github.com/satori/go.uuid"
 )
 

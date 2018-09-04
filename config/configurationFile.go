@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"sync"
 
-	"github.com/newvoicemedia/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/logs"
 )
 
 // Config is used to read out the vales of the configuration file or default values used to run the program.
