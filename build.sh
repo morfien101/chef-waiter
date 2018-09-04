@@ -212,7 +212,7 @@ function travis-branch-commit() {
   fi
 
   echo "Trying to push commit"
-  if ! git push "$remote" "$TRAVIS_BRANCH" > /dev/null 2>&1; then
+  if ! git push "$remote" "$TRAVIS_BRANCH"; then
     echo "failed to push git changes"
     return 1
   fi
