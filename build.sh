@@ -39,6 +39,7 @@ while test $# -gt 0; do
       echo "--version-special=*: Update the Special part of the version number."
       echo "-n|--next-minor: Increments the version numer to the next patch."
       echo "-u|--update-version: Updates the buidl script with the new version number. Commits it to git."
+      exit 0
       shift
       ;;
     -w)
