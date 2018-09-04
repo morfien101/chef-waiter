@@ -160,7 +160,10 @@ function travis-branch-commit() {
   local head_ref branch_ref commit_message files_to_commit
   
   commit_message=$1
-  files_to_commit=${*:2}
+  files_to_commit=""
+  for i in ${@:2}; do
+    files="$files_to_commit \"$i\""
+  done
   
   head_ref=$(git rev-parse HEAD)
   if [[ $? -ne 0 || ! $head_ref ]]; then
@@ -184,7 +187,7 @@ function travis-branch-commit() {
     err "failed to checkout $TRAVIS_BRANCH"
     return 1
   fi
-
+  echo "$OUT_DIR/" > .gitignore
   if ! git add $files_to_commit; then
     err "failed to add modified files to git index"
     return 1
