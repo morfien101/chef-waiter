@@ -18,6 +18,14 @@ OUT_DIR=./artifacts
 SCRIPT_PATH=$0
 STARTING_DIR=$(pwd)
 
+function msg() {
+    echo "travis build: $*"
+}
+
+function err() {
+    msg "$*" 1>&2
+}
+
 # Triggers
 SHOW_VERSION_LONG=0
 SHOW_VERSION_SHORT=0
@@ -94,7 +102,7 @@ while test $# -gt 0; do
       ;;
     -n|--next-minor)
       let VERSION_PATCH+=1
-      echo "Setting Patch number to: ${VERSION_PATCH}"
+      msg "Setting Patch number to: ${VERSION_PATCH}"
       shift
       ;;
     -u|--update-version)
@@ -118,7 +126,7 @@ ensure_artifact_dir(){
   if [ ! -d $1 ]; then
     mkdir -p $1
     if [ $? -ne 0 ]; then
-      echo "Failed to create the output directory: ${OUT_DIR}"
+      err "Failed to create the output directory: ${OUT_DIR}"
     fi
   fi
 }
@@ -150,9 +158,9 @@ build_bin() {
 
   # Check if it worked
   if [ $? -eq 0 ]; then
-    echo "Binary built and store as: $output"
+    msg "Binary built and store as: $output"
   else
-    echo "Binary for $goos failed to build!"
+    msg "Binary for $goos failed to build!"
     exit 1
   fi
 }
@@ -189,13 +197,13 @@ function travis-branch-commit() {
     return 1
   fi
 
-  echo "running: git add $files_to_commit"
+  msg "running: git add $files_to_commit"
   if ! git add $files_to_commit; then
     err "failed to add modified files to git index"
     return 1
   fi
   # make Travis CI skip this build
-  echo "Committing changes:"
+  msg "Committing changes:"
   git status
   if ! git commit -m "[ci skip] $commit_message"; then
     err "failed to commit updates"
@@ -204,7 +212,7 @@ function travis-branch-commit() {
 
   local remote=origin
   if [[ $GH_TOKEN ]]; then
-    echo "Adding in a token for Auth"
+    msg "Adding in a token for Auth"
     remote=https://$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG
   fi
   if [[ $TRAVIS_BRANCH != master ]]; then
@@ -212,34 +220,36 @@ function travis-branch-commit() {
     return 0
   fi
 
-  echo "Trying to push commit"
+  msg "Trying to push commit"
   if ! git push "$remote" "$TRAVIS_BRANCH"; then
-    echo "failed to push git changes"
+    err "failed to push git changes"
     return 1
   fi
 }
 
+
+
 # Show version
 if [ $SHOW_VERSION_LONG -eq 1 ]; then
-  echo "Current version number in build script: ${VERSION}"
+  msg "Current version number in build script: ${VERSION}"
   exit 0
 fi
 
 if [ $SHOW_VERSION_SHORT -eq 1 ]; then
-  echo "v$VERSION"
+  msg "v$VERSION"
   exit 0
 fi
 
 # Update the version in this file
 if [ $UPDATE_VERSION -eq 1 ]; then
-  echo "Updating the build script with new version numbers."
+  msg "Updating the build script with new version numbers."
   sed -i -r 's/^VERSION_MAJOR=[0-9]+$/VERSION_MAJOR='"$VERSION_MAJOR"'/' $SCRIPT_PATH \
   && sed -i -r 's/^VERSION_MINOR=[0-9]+$/VERSION_MINOR='"$VERSION_MINOR"'/' $SCRIPT_PATH \
   && sed -i -r 's/^VERSION_PATCH=[0-9]+$/VERSION_PATCH='"$VERSION_PATCH"'/' $SCRIPT_PATH \
   && sed -i -r 's/^VERSION_SPECIAL=*$/VERSION_SPECIAL='"$VERSION_SPECIAL"'/' $SCRIPT_PATH
 
   if [ $? != 0 ]; then
-    echo "Failed to update the version in build script"
+    err "Failed to update the version in build script"
     exit 1
   fi
   # We have updated the file we should push the new version
@@ -255,10 +265,10 @@ if [ $BUILD_WINDOWS -eq 1 ]; then
 fi
 
 if [ $TAR_FILES -eq 1 ]; then
-  echo "Starting compression of binaries"
+  msg "Starting compression of binaries"
   cd $OUT_DIR
   for d in $(ls); do
-    echo "starting tar and gzip on $d"
+    msg "starting tar and gzip on $d"
     tar -czvf $d.tar.gz $d
   done
   cd $STARTING_DIR
@@ -271,4 +281,4 @@ if [ $PUSH_VERSION -eq 1 ]; then
   fi
 fi
 
-echo "Finished."
+msg "Finished."
