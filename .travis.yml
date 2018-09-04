@@ -3,8 +3,6 @@ install: true
 go:
 - '1.11'
 script:
-- export PUBDIR=$HOME/publish
-- mkdir $PUBDIR
 - go test -v ./...
 - "./build.sh -n -u -l -w"
 notifications:
@@ -19,7 +17,9 @@ branches:
   except:
   - "/\\+travis\\d+$/"
 before_deploy:
-- cp ./artifacts/*.tar.gz ./publish 
+- export PUBDIR=$HOME/publish
+- mkdir $PUBDIR
+- cp artifacts/*.tar.gz $PUBDIR
 - git config --local user.name "Travis"
 - git config --local user.email "morfien101@gmail.com"
 - git tag "$(./build.sh -v)+travis$TRAVIS_BUILD_NUMBER" --force
