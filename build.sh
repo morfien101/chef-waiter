@@ -163,7 +163,7 @@ function travis-branch-commit() {
   commit_message=$1
   files_to_commit=""
   for i in ${@:2}; do
-    files_to_commit="$files_to_commit \"$i\""
+    files_to_commit="$files_to_commit $i"
   done
   
   head_ref=$(git rev-parse HEAD)
@@ -189,6 +189,7 @@ function travis-branch-commit() {
     return 1
   fi
   echo "$OUT_DIR/" > .gitignore
+  echo "DEBUG - running: git add $files_to_commit"
   if ! git add $files_to_commit; then
     err "failed to add modified files to git index"
     return 1
