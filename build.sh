@@ -255,7 +255,10 @@ if [ $TAR_FILES -eq 1 ]; then
 fi
 
 if [ $PUSH_VERSION -eq 1 ]; then
-  travis-branch-commit "Pushing new version $VERSION." "./build.sh"
+  travis-branch-commit "Pushing new version $VERSION." "build.sh"
+  if [ $? != 0 ]; then
+    exit 1
+  fi
 fi
 
 echo "Finished."
