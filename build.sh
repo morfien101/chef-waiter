@@ -160,8 +160,7 @@ function travis-branch-commit() {
   local head_ref branch_ref commit_message files_to_commit
   
   commit_message=$1
-  shift
-  files_to_commit="$@"
+  files_to_commit=${*:2}
   
   head_ref=$(git rev-parse HEAD)
   if [[ $? -ne 0 || ! $head_ref ]]; then
