@@ -151,6 +151,7 @@ build_bin() {
     echo "Binary built and store as: $output"
   else
     echo "Binary for $goos failed to build!"
+    exit 1
   fi
 }
 
@@ -181,7 +182,8 @@ if [ $UPDATE_VERSION -eq 1 ]; then
     && git push origin HEAD:master
 
     if [ $? -ne 0 ]; then
-      echo "Something went wrong while pushing the new version numbers"
+      echo "Something went wrong while pushing the new version numbers. Exiting."
+      exit 1
     fi
   fi
 fi
