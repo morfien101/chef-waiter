@@ -16,6 +16,7 @@ BUILD_LINUX=0
 BIN_NAME="chef-waiter"
 OUT_DIR=./artifacts
 SCRIPT_PATH=$0
+STARTING_DIR=$(pwd)
 
 # Triggers
 SHOW_VERSION_LONG=0
@@ -254,6 +255,7 @@ if [ $TAR_FILES -eq 1 ]; then
     echo "starting tar and gzip on $d"
     tar -czvf $d.tar.gz $d
   done
+  cd $STARTING_DIR
 fi
 
 if [ $PUSH_VERSION -eq 1 ]; then
