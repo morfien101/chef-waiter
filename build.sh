@@ -22,6 +22,7 @@ SHOW_VERSION_LONG=0
 SHOW_VERSION_SHORT=0
 UPDATE_VERSION=0
 TAR_FILES=0
+PUSH_VERSION=0
 
 while test $# -gt 0; do
   case $1 in
@@ -155,6 +156,60 @@ build_bin() {
   fi
 }
 
+function travis-branch-commit() {
+  local head_ref branch_ref commit_message files_to_commit
+  
+  commit_message=$1
+  shift
+  files_to_commit="$@"
+  
+  head_ref=$(git rev-parse HEAD)
+  if [[ $? -ne 0 || ! $head_ref ]]; then
+    err "failed to get HEAD reference"
+    return 1
+  fi
+
+  branch_ref=$(git rev-parse "$TRAVIS_BRANCH")
+  if [[ $? -ne 0 || ! $branch_ref ]]; then
+    err "failed to get $TRAVIS_BRANCH reference"
+    return 1
+  fi
+  
+  if [[ $head_ref != $branch_ref ]]; then
+    msg "HEAD ref ($head_ref) does not match $TRAVIS_BRANCH ref ($branch_ref)"
+    msg "someone may have pushed new commits before this build cloned the repo"
+    return 0
+  fi
+  
+  if ! git checkout "$TRAVIS_BRANCH"; then
+    err "failed to checkout $TRAVIS_BRANCH"
+    return 1
+  fi
+
+  if ! git add $files_to_commit; then
+    err "failed to add modified files to git index"
+    return 1
+  fi
+  # make Travis CI skip this build
+  if ! git commit -m "[ci skip] $commit_message"; then
+    err "failed to commit updates"
+    return 1
+  fi
+
+  local remote=origin
+  if [[ $GITHUB_TOKEN ]]; then
+    remote=https://$GITHUB_TOKEN@github.com/$TRAVIS_REPO_SLUG
+  fi
+  if [[ $TRAVIS_BRANCH != master ]]; then
+    msg "not pushing updates to branch $TRAVIS_BRANCH"
+    return 0
+  fi
+  if ! git push --quiet "$remote" "$TRAVIS_BRANCH" > /dev/null 2>&1; then
+    err "failed to push git changes"
+    return 1
+  fi
+}
+
 # Show version
 if [ $SHOW_VERSION_LONG -eq 1 ]; then
   echo "Current version number in build script: ${VERSION}"
@@ -174,22 +229,12 @@ if [ $UPDATE_VERSION -eq 1 ]; then
   && sed -i -r 's/^VERSION_PATCH=[0-9]+$/VERSION_PATCH='"$VERSION_PATCH"'/' $SCRIPT_PATH \
   && sed -i -r 's/^VERSION_SPECIAL=*$/VERSION_SPECIAL='"$VERSION_SPECIAL"'/' $SCRIPT_PATH
 
-  if [ $? -eq 0 ]; then
-    echo "Committing updated build script to git."
-    echo "WARNING: This commit will be skipped by CI."
-    if ! git remote remove origin && git remote add origin https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git; then
-      echo "Failed to add a new origin for  git."
-      exit 1
-    fi
-    git add $SCRIPT_PATH \
-    && git commit -m "[skip ci] BUILD_SCRIPT: Changing version number for build script to ${VERSION}." \
-    && git push HEAD:master origin
-
-    if [ $? -ne 0 ]; then
-      echo "Something went wrong while pushing the new version numbers. Exiting."
-      exit 1
-    fi
+  if [ $? != 0 ]; then
+    echo "Failed to update the version in build script"
+    exit 1
   fi
+  # We have updated the file we should push the new version
+  PUSH_VERSION=1
 fi
 
 if [ $BUILD_LINUX -eq 1 ]; then
@@ -207,6 +252,10 @@ if [ $TAR_FILES -eq 1 ]; then
     echo "starting tar and gzip on $d"
     tar -czvf $d.tar.gz $d
   done
+fi
+
+if [ $PUSH_VERSION -eq 1 ]; then
+  travis-branch-commit "Pushing new version $VERSION." "./build.sh"
 fi
 
 echo "Finished."
