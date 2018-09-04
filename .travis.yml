@@ -28,8 +28,6 @@ deploy:
   api_key:
     secure: qCVgXIh8YECi1bEJQ2hA7xZTjqDtJ6HmxccPI5PuCLhHhOeVcfhbcFPbNRhPsxGVUNEJH0JyuLTBSVXO3RakcvQ7gzI94k1xoprFFiOmIaAqM4pj54vvJBnZe55ed4XPS4r13f3QjDb2JAo390b/ZvlDSK7HXbY1KsjCPOakORHNT0q150YawrY3mHjlcvOBqma0D+AsFw9z07j2sxV3DZtbxrhEkzM0xT8JNnyVGgmZnmfhQO0K3WSgletZxCbso/hsC8riEkFAhpFx29HR8jNjokCO0v0ISmxGTSj2oQ7eAKvYUZWdayIE4fHL4M7VB3JHuWpTaoAqjSDsv9/SafBQfT25cTKyKw2YZJ9T57D/Ehx/uBpn1fUU4O/+df3Wxa493LHiWMaxr5SXUCzE+i6wAx34DbfdWaaZrxIUdH0mJtChXsqkgDMDh1i4ZXRZg1Wrg54d37Ooqp3Zl+0//uoQ32lT/iX3WdJNbY7juY72uBfXrO3IDHKPyTQYNrpDjWxVZ02j9FNKGIvapvFSrPiQVNh4vLClx2wOdRsfUEuBE/7sV5GdtAn2LC77JS8BbtGUze4yOMvIIhYkpM6l00/OK3pTb28fguM5YQtrXIh9TtRCxJovVslCjGLR+D+WhkItQZuYvYl+0LEjsBBCWguqiJiU+IvTQNHyRrxCscM=
   file: 
-    - publish/*.tar.gz
+    - $HOME/publish/*
   file_glob: true
   skip_cleanup: true
-  on:
-    repo: morfien101/chef-waiter
