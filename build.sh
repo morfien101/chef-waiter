@@ -188,13 +188,15 @@ function travis-branch-commit() {
     err "failed to checkout $TRAVIS_BRANCH"
     return 1
   fi
-  echo "$OUT_DIR/" > .gitignore
-  echo "DEBUG - running: git add $files_to_commit"
+
+  echo "running: git add $files_to_commit"
   if ! git add $files_to_commit; then
     err "failed to add modified files to git index"
     return 1
   fi
   # make Travis CI skip this build
+  echo "Committing changes:"
+  git status
   if ! git commit -m "[ci skip] $commit_message"; then
     err "failed to commit updates"
     return 1
@@ -208,8 +210,10 @@ function travis-branch-commit() {
     msg "not pushing updates to branch $TRAVIS_BRANCH"
     return 0
   fi
+  
+  echo "Trying to push commit"
   if ! git push --quiet "$remote" "$TRAVIS_BRANCH" > /dev/null 2>&1; then
-    err "failed to push git changes"
+    echo "failed to push git changes"
     return 1
   fi
 }
@@ -260,10 +264,6 @@ if [ $TAR_FILES -eq 1 ]; then
 fi
 
 if [ $PUSH_VERSION -eq 1 ]; then
-  echo "DEBUG - current path $(pwd)"
-  echo "DEBUG - Dir listing:"
-  ls
-  echo "END"
   travis-branch-commit "Pushing new version $VERSION." "build.sh"
   if [ $? != 0 ]; then
     exit 1
