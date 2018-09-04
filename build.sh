@@ -259,6 +259,10 @@ if [ $TAR_FILES -eq 1 ]; then
 fi
 
 if [ $PUSH_VERSION -eq 1 ]; then
+  echo "DEBUG - current path $(pwd)"
+  echo "DEBUG - Dir listing:"
+  ls
+  echo "END"
   travis-branch-commit "Pushing new version $VERSION." "build.sh"
   if [ $? != 0 ]; then
     exit 1
