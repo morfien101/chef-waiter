@@ -236,7 +236,7 @@ if [ $SHOW_VERSION_LONG -eq 1 ]; then
 fi
 
 if [ $SHOW_VERSION_SHORT -eq 1 ]; then
-  msg "v$VERSION"
+  echo "v$VERSION"
   exit 0
 fi
 
