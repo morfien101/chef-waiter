@@ -6,11 +6,11 @@ script:
 - export PUBDIR=$HOME/publish
 - mkdir $PUBDIR
 - go test -v ./...
-- ./build.sh -n -u -l -w
+- ./build.sh -n -u -l -w -t
 #before_deploy:
 #- cp ./artifacts/*.tar.gz ./publish 
 #- git config --local user.name "Travis"
-#- git config --local user.email "randy.coburn@newvoicemedia.com"
+#- git config --local user.email "morfien101@gmail.com"
 #- git tag "$(./build.sh -v)" --force
 #deploy:
 #  provider: releases
@@ -21,9 +21,9 @@ script:
 #  file_glob: true
 #  skip_cleanup: true
 #  on:
-#    repo: newvoicemedia/chef-waiter
+#    repo: morfien101/chef-waiter
 notifications:
   email:
-  - randy.coburn@newvoicemedia.com
+  - morfien101@gmail.com
   on_success: change
   on_failure: always

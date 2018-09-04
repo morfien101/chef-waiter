@@ -177,7 +177,7 @@ if [ $UPDATE_VERSION -eq 1 ]; then
     echo "WARNING: This commit will be skipped by CI."
     git add $SCRIPT_PATH \
     && git commit -m "[skip ci] BUILD_SCRIPT: Changing version number for build script to ${VERSION}." \
-    && git push
+    && git push origin HEAD:master
 
     if [ $? -ne 0 ]; then
       echo "Something went wrong while pushing the new version numbers"
