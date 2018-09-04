@@ -203,8 +203,9 @@ function travis-branch-commit() {
   fi
 
   local remote=origin
-  if [[ $GITHUB_TOKEN ]]; then
-    remote=https://$GITHUB_TOKEN@github.com/$TRAVIS_REPO_SLUG
+  if [[ $GH_TOKEN ]]; then
+    echo "Adding in a token for Auth"
+    remote=https://$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG
   fi
   if [[ $TRAVIS_BRANCH != master ]]; then
     msg "not pushing updates to branch $TRAVIS_BRANCH"
