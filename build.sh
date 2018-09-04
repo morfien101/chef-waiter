@@ -177,6 +177,10 @@ if [ $UPDATE_VERSION -eq 1 ]; then
   if [ $? -eq 0 ]; then
     echo "Committing updated build script to git."
     echo "WARNING: This commit will be skipped by CI."
+    if ! git remote rm origin && git remote add origin https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git; then
+      echo "Failed to add a new origin for  git."
+      exit 1
+    fi
     git add $SCRIPT_PATH \
     && git commit -m "[skip ci] BUILD_SCRIPT: Changing version number for build script to ${VERSION}." \
     && git push origin HEAD:master
