@@ -183,7 +183,7 @@ if [ $UPDATE_VERSION -eq 1 ]; then
     fi
     git add $SCRIPT_PATH \
     && git commit -m "[skip ci] BUILD_SCRIPT: Changing version number for build script to ${VERSION}." \
-    && git push origin HEAD:master
+    && git push HEAD:master origin
 
     if [ $? -ne 0 ]; then
       echo "Something went wrong while pushing the new version numbers. Exiting."
