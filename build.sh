@@ -268,8 +268,13 @@ if [ $TAR_FILES -eq 1 ]; then
   msg "Starting compression of binaries"
   cd $OUT_DIR
   for d in $(ls); do
-    msg "starting tar and gzip on $d"
-    tar -czvf $d.tar.gz $d
+    if [ $( echo $d | grep -c "windows") -eq 0 ]; then
+      msg "starting tar and gzip on $d"
+      tar -czvf $d.tar.gz $d
+    else
+      msg "Starting zip on $d"
+      zip -r $d.zip $d
+    fi
   done
   cd $STARTING_DIR
 fi
