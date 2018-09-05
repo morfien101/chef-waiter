@@ -19,7 +19,7 @@ branches:
 before_deploy:
 - export PUBDIR=$HOME/publish
 - mkdir $PUBDIR
-- cp -v sartifacts/*.tar.gz $PUBDIR
+- cp -v artifacts/*.tar.gz $PUBDIR
 - git config --local user.name "Travis"
 - git config --local user.email "morfien101@gmail.com"
 - git tag "$(./build.sh -v)+travis$TRAVIS_BUILD_NUMBER" --force
