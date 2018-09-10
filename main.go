@@ -12,7 +12,7 @@ import (
 
 // VERSION holds the version of the program
 // Don't change this as the build server tags the builds.
-const VERSION = "17.10.200"
+var VERSION = "1.0.0"
 
 // Flags for the application launch
 var (
