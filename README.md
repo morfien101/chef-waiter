@@ -91,6 +91,7 @@ An example file is below:
     "state_location": /etc/chefwaiter
 }
 ```
+
 Default settings:
 | Setting | Windows | Linux | Description |
 |---|---|---|---|
