@@ -1,6 +1,7 @@
 package webengine
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -46,7 +47,7 @@ func url(uri string) string {
 	return fmt.Sprintf("%s%s", serverAddres, uri)
 }
 
-func genNewHTTPServer(t *testing.T) *HTTPEngine {
+func genNewHTTPServer(t *testing.T, logOutput bool, debuglogs bool) *HTTPEngine {
 	// HTTP Engine needs this
 	// state internalstate.StateTableReadWriter,
 	// appState internalstate.AppStatusReader,
@@ -58,7 +59,10 @@ func genNewHTTPServer(t *testing.T) *HTTPEngine {
 	// config config.Config,
 	// chefLogsWorker cheflogs.WorkerWriter,
 	// logger logs.SysLogger,
-	logger := logs.NewFakeLogger(false)
+	logger := logs.NewFakeLogger(logOutput)
+	if debuglogs {
+		logs.TurnDebuggingOn(logger, true)
+	}
 	configFile, err := config.TestConfigFile()
 	if err != nil {
 		t.Fatal(err)
@@ -77,7 +81,7 @@ func genNewHTTPServer(t *testing.T) *HTTPEngine {
 }
 
 func TestStatus(t *testing.T) {
-	webEngine := genNewHTTPServer(t)
+	webEngine := genNewHTTPServer(t, false, false)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, url("/_status"), nil)
@@ -91,7 +95,7 @@ func TestStatus(t *testing.T) {
 }
 
 func TestLock(t *testing.T) {
-	webEngine := genNewHTTPServer(t)
+	webEngine := genNewHTTPServer(t, true, false)
 
 	type returnJSON struct {
 		Locked bool `json:"Locked"`
@@ -165,5 +169,52 @@ func TestLock(t *testing.T) {
 			}
 		}
 	}
+}
 
+func TestCustomJob(t *testing.T) {
+	webEngine := genNewHTTPServer(t, true, true)
+	makeBytes := func(n int) []byte {
+		retVal := make([]byte, n)
+		for i := 0; i < n; i++ {
+			retVal[i] = 64
+		}
+		return retVal
+	}
+	tests := []struct {
+		name         string
+		expectedCode int
+		bytesToSend  []byte
+	}{
+		{
+			name:         "Good Test",
+			expectedCode: http.StatusOK,
+			bytesToSend:  []byte(`recipe[chefwaiter::]`),
+		},
+		{
+			name:         "Too Large",
+			expectedCode: http.StatusBadRequest,
+			bytesToSend:  makeBytes(600),
+		},
+	}
+
+	for _, test := range tests {
+		w := httptest.NewRecorder()
+		t.Logf("Sending %d bytes in request", len(test.bytesToSend))
+		r := httptest.NewRequest(http.MethodPost, url("/chefclient"), bytes.NewReader(test.bytesToSend))
+		webEngine.ServeHTTP(w, r)
+		result := w.Result()
+		bodybytes, err := ioutil.ReadAll(result.Body)
+		if err != nil {
+			t.Logf("Failed to read returned body. Error: %s", bodybytes)
+			t.FailNow()
+		}
+		result.Body.Close()
+
+		// Tests
+		// Test status Code
+		t.Logf("%s", bodybytes)
+		if result.StatusCode != test.expectedCode {
+			t.Errorf("Test %s did not return expected Status Code. Got: %d, Want: %d", test.name, w.Result().StatusCode, test.expectedCode)
+		}
+	}
 }

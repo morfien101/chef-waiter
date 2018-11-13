@@ -14,17 +14,19 @@ import (
 	"github.com/morfien101/chef-waiter/logs"
 )
 
-// StatusDetails - Holds data about indiviual runs.
+// JobDetails - Holds data about indiviual runs.
 // Status can be one of the following: registered, running, complete, unknown, abandoned
 // unknown: is set if the data is read from a static state file on start up and the
 // job was previosly set to running.
 // abandoned: is set if the data is read from a static state file on start up and the
 // job was previosly set to registered.
-type StatusDetails struct {
-	Status         string `json:"status"`
-	ExitCode       int    `json:"exitcode"`
-	RegisteredTime int64  `json:"starttime"`
-	OnDemand       bool   `json:"ondemand"`
+type JobDetails struct {
+	Status          string `json:"status"`
+	ExitCode        int    `json:"exitcode"`
+	RegisteredTime  int64  `json:"starttime"`
+	OnDemand        bool   `json:"ondemand"`
+	CustomRun       bool   `json:"custom_run"`
+	CustomRunString string `json:"custom_run_string"`
 }
 
 // TODO - Switch to using this for status of runs.
@@ -39,7 +41,7 @@ type StatusDetails struct {
 // StateTable - holds the state map and sync functions.
 type StateTable struct {
 	mutexLock sync.RWMutex
-	Status    map[string]*StatusDetails
+	Status    map[string]*JobDetails
 	// Used to hold the epoc time when chef last run and completed good or bad.
 	LastRunStartTime int64
 	LastRunGUID      string
@@ -63,8 +65,10 @@ type StateTableReadWriter interface {
 
 // StateTableReader describes the functions required to read data from the state table.
 type StateTableReader interface {
-	Read(string) map[string]*StatusDetails
-	ReadAll() map[string]*StatusDetails
+	Read(string) map[string]*JobDetails
+	ReadAll() map[string]*JobDetails
+	IsDemandJob(string) bool
+	IsCustomJob(string) (bool, string)
 	GetAllStateTimes() map[string]int64
 	GetlastRunStartTime() int64
 	ReadChefRunTimer() int64
@@ -78,7 +82,7 @@ type StateTableReader interface {
 // StateTableWriter describes the functions to write data to the state table.
 type StateTableWriter interface {
 	Add(string, bool)
-	RegisterRun(bool) (bool, string)
+	RegisterRun(bool, bool, string) (bool, string)
 	UpdateStatus(string, string)
 	UpdateExitCode(string, int)
 	RemoveState(string)
@@ -113,7 +117,7 @@ func New(
 func defaultStateTable(config config.Config, chefLogsWorker cheflogs.WorkerWriter, logger logs.SysLogger) (st *StateTable) {
 	logs.DebugMessage("run newStateTable()")
 	return &StateTable{
-		Status:             make(map[string]*StatusDetails),
+		Status:             make(map[string]*JobDetails),
 		LastRunStartTime:   int64(1257894000),
 		ChefRunTimer:       config.PeriodicTimer() * 60,
 		PeriodicRuns:       config.ControlChefRun(),
@@ -177,7 +181,7 @@ func (st *StateTable) flushToDisk(sf io.Writer) error {
 func (st *StateTable) Add(id string, ondemand bool) {
 	st.lock()
 	defer st.unlock()
-	st.Status[id] = &StatusDetails{
+	st.Status[id] = &JobDetails{
 		Status:         "registered",
 		ExitCode:       99,
 		RegisteredTime: time.Now().Unix(),
@@ -185,29 +189,60 @@ func (st *StateTable) Add(id string, ondemand bool) {
 	}
 }
 
+// AddCustom - Allows the caller to add a guid to the state table with details of a
+// custom job.
+func (st *StateTable) AddCustom(id string, customString string) {
+	st.lock()
+	defer st.unlock()
+	st.Status[id] = &JobDetails{
+		Status:          "registered",
+		ExitCode:        99,
+		RegisteredTime:  time.Now().Unix(),
+		OnDemand:        true,
+		CustomRun:       true,
+		CustomRunString: customString,
+	}
+}
+
 // RegisterRun - Allows us to check if a on demand run is registered and to register one
 // if there is not. It will return a bool true to signal that a new run was created and also
 // return a string of the guid that this run is associated with. The run could be a copy
 // of a previos run that is still queuing to run.
-func (st *StateTable) RegisterRun(onDemand bool) (ok bool, guid string) {
+func (st *StateTable) RegisterRun(onDemand, customRun bool, customString string) (ok bool, guid string) {
 	// check if there is a on demand chef run already waiting.
 	// if so collect the guid
 	// else create a run and make a guid
-	ok = false
+
 	st.rLock()
 	for id := range st.Status {
 		i := st.Status[id]
-		if i.Status == "registered" && i.OnDemand == onDemand {
-			guid = id
+		if i.Status == "registered" {
+			// Determin if i is also a custom run if so match the strings.
+			if customRun && i.CustomRun && i.CustomRunString == customString {
+				guid = id
+			} else {
+				// If its not a custom run then it can either be onDemand or periodic.
+				// Either way if the values match then return a guid.
+				if i.OnDemand == onDemand {
+					guid = id
+				}
+			}
 		}
 	}
 	st.rUnlock()
+
+	// If the guid has not been set then get one.
 	if len(guid) < 1 {
 		guid = uuid.NewV4().String()
-		ok = true
-		st.Add(guid, onDemand)
+		if customRun {
+			st.AddCustom(guid, customString)
+		} else {
+			st.Add(guid, onDemand)
+		}
+		return true, guid
 	}
-	return
+	logs.DebugMessage(fmt.Sprintf("Return a queued guid: %s", guid))
+	return false, guid
 }
 
 // UpdateStatus - Updates the states of an ID with the given status string
@@ -226,9 +261,33 @@ func (st *StateTable) UpdateExitCode(guid string, code int) {
 	st.Status[guid].ExitCode = code
 }
 
+// IsDemandJob will return the value of a JobDetails OnDemand value. This
+// will let the caller know if it is a on demand job.
+func (st *StateTable) IsDemandJob(guid string) bool {
+	st.rLock()
+	defer st.rUnlock()
+	value, ok := st.Status[guid]
+	if !ok {
+		return false
+	}
+	return value.OnDemand
+}
+
+// IsCustomJob will return true or false detailing if the job is a custom run
+// and also the value of the custom run string.
+func (st *StateTable) IsCustomJob(guid string) (bool, string) {
+	st.rLock()
+	defer st.rUnlock()
+	value, ok := st.Status[guid]
+	if !ok {
+		return false, ""
+	}
+	return value.CustomRun, value.CustomRunString
+}
+
 // Read - Creates a copy of the current state and returns it. This makes it thread safe.
-func (st *StateTable) Read(guid string) (status map[string]*StatusDetails) {
-	status = make(map[string]*StatusDetails)
+func (st *StateTable) Read(guid string) (status map[string]*JobDetails) {
+	status = make(map[string]*JobDetails)
 	st.rLock()
 	status[guid] = st.Status[guid]
 	st.rUnlock()
@@ -237,7 +296,7 @@ func (st *StateTable) Read(guid string) (status map[string]*StatusDetails) {
 
 // ReadAll - returns all the state table entries.
 // Can be used for saving the state
-func (st *StateTable) ReadAll() (status map[string]*StatusDetails) {
+func (st *StateTable) ReadAll() (status map[string]*JobDetails) {
 	st.rLock()
 	defer st.rUnlock()
 	return st.Status

@@ -39,8 +39,25 @@ $> curl http://127.0.0.1:8901/chefclient
     "35434398-b40a-4686-ab38-38deccd4241b": {
         "status":"registered",
         "exitcode":99,
-        "starttime":1501605431834067960,
+        "starttime":1542124123,
         "ondemand":true
+    }
+}
+```
+
+```bash
+curl -v -XPOST http://localhost:8901/chefclient --data-raw "recipe[chefwaiter::test]"
+```
+
+```json
+{
+    "0a92d0a7-dfda-4b28-8195-0e00ff120fc5":{
+        "status":"running",
+        "exitcode":99,
+        "starttime":1542124815,
+        "ondemand":true,
+        "custom_run":true,
+        "custom_run_string":"recipe[chefwaiter::test]"
     }
 }
 ```
@@ -54,7 +71,7 @@ $> curl http://127.0.0.1:8901/chefclient/35434398-b40a-4686-ab38-38deccd4241b
     "35434398-b40a-4686-ab38-38deccd4241b": {
         "status":"complete",
         "exitcode":0,
-        "starttime":1501605431834067960,
+        "starttime":1542124123,
         "ondemand":true
     }
 }
@@ -72,28 +89,29 @@ $> curl http://127.0.0.1:8901/chef/lastrun
 
 Chefwaiter will determin if the chef run passed or failed based on the exit code of the run. If the run passed you will see a status of `complete` if it failed you will see `failed`.
 
-Below is a table describing the API for chef waiter. Chefwaiter was built with easy understanding for humans in mind. All the requests are GET based. There is very little that chefwaiter needs in terms of data and these are passed in via the URL.
+Below is a table describing the API for chef waiter. Chefwaiter was built with easy understanding for humans in mind. MOST the requests are GET based. There is very little that chefwaiter needs in terms of data and these are passed in via the URL.
 
-| URL | Description|
-|-----|------------|
-| /chefclient | Use this to create a run. You will have a json payload returned with a guid for the run. |
-| /chefclient/{guid} | Used with the GUID that you received from /chefclient to get the status of the run.
-| /cheflogs/{guid} | Used with the GUID that you received from /chefclient to get the chef logs from a run.
-| /chef/nextrun | Used to get the time when the next run will happen. This time is the time when the server is free to start the next run and will usually happen with in a minute of this time.
-|/chef/interval| Used to get the time between automatic chef runs.
-|/chef/interval/{i}| Used to set the time between chef runs. This needs to be a positive number and represents minutes between runs.
-|/chef/on| Used to turn on automatic runs of chef
-|/chef/off| Used to turn off automatic runs of chef
-|/chef/lastrun| Returns the guid of the last run. It starts as blank when the service starts.
-|/chef/enabled| Used to check if chef is currently enabled to run periodically
-|/chef/maintenance| Shows if the chef waiter is in maintenance mode currently.
-|/chef/maintenance/start/{i}| Requests that chef waiter be put into maintenance mode for i number of minutes. This must be a whole number.
-|/chef/maintenance/end| Removes the maintenance timer allowing periodic runs to start again.
-|/chef/lock| Shows the status of the lock for runs.
-|/chef/lock/set| Turns on the lock for chef runs. Stops any runs from occurring.
-|/chef/lock/remove| Turns off the lock for chef runs. Enables normal operation again.
-|/_status | Returns a epoch time from the time that the server was started. It can be used to infer a restart.
-| /healthcheck | Returns a 200 OK to show that the server is online.
+| URL | METHOD |Description|
+|-----|--------|------------|
+| /chefclient | GET | Use this to create a run. You will have a json payload returned with a guid for the run.
+| /chefclient | POST | Use this to create a run with a custom recipe string. See chef -o option. The string should be like `"recipe[chefwaiter::test]"`.
+| /chefclient/{guid} | GET | Used with the GUID that you received from /chefclient to get the status of the run.
+| /cheflogs/{guid} | GET | Used with the GUID that you received from /chefclient to get the chef logs from a run.
+| /chef/nextrun | GET | Used to get the time when the next run will happen. This time is the time when the server is free to start the next run and will usually happen with in a minute of this time.
+|/chef/interval| GET | Used to get the time between automatic chef runs.
+|/chef/interval/{i}| GET | Used to set the time between chef runs. This needs to be a positive number and represents minutes between runs.
+|/chef/on| GET | Used to turn on automatic runs of chef
+|/chef/off| GET | Used to turn off automatic runs of chef
+|/chef/lastrun| GET | Returns the guid of the last run. It starts as blank when the service starts.
+|/chef/enabled| GET | Used to check if chef is currently enabled to run periodically
+|/chef/maintenance| GET | Shows if the chef waiter is in maintenance mode currently.
+|/chef/maintenance/start/{i}| GET | Requests that chef waiter be put into maintenance mode for i number of minutes. This must be a whole number.
+|/chef/maintenance/end| GET | Removes the maintenance timer allowing periodic runs to start again.
+|/chef/lock| GET | Shows the status of the lock for runs.
+|/chef/lock/set| GET | Turns on the lock for chef runs. Stops any runs from occurring.
+|/chef/lock/remove| GET | Turns off the lock for chef runs. Enables normal operation again.
+|/_status | GET | Returns a epoch time from the time that the server was started. It can be used to infer a restart.
+| /healthcheck | GET | Returns a 200 OK to show that the server is online.
 
 ## Installing
 

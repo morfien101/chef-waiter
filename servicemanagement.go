@@ -64,13 +64,16 @@ func (p *program) run() error {
 	logs.DebugMessage("Starting Service run() function.")
 	// Create the directory for logs
 	if err := os.MkdirAll(runningConfig.LogLocation(), 0755); err != nil {
-		return err
+		logger.Errorf("Failed to make directories for logs. Error: %s", err)
+		os.Exit(1)
 	}
 
 	// Create the directory for stateFile
 	if err := os.MkdirAll(runningConfig.StateFileLocation(), 0755); err != nil {
-		return err
+		logger.Errorf("Failed to make directory for statefile. Error: %s", err)
+		os.Exit(1)
 	}
+	fmt.Println("here")
 
 	// Start the log sweeper engine
 	chefLogWorker := cheflogs.New(runningConfig, logger)

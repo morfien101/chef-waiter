@@ -32,6 +32,7 @@ SHOW_VERSION_SHORT=0
 UPDATE_VERSION=0
 TAR_FILES=0
 PUSH_VERSION=0
+TEST_RUN=0
 
 while test $# -gt 0; do
   case $1 in
@@ -41,6 +42,7 @@ while test $# -gt 0; do
       echo "-l: Builds the Linux binary."
       echo "-t: Tar and gzip files that are compiled."
       echo "-x86: Sets the builds to be 32bit."
+      echo "--test: runs all tests."
       echo "--output-name=<bin name>: Sets the output binary to be what is supplied. Windows binarys will have a .exe suffix add to it."
       echo "--output-dir=</path/to/dir>: Sets the output directory for built binaries."
       echo "--version-major=*: Update the Major part of the version number."
@@ -74,6 +76,11 @@ while test $# -gt 0; do
       ;;
     -x86)
       export GO_ARCH=386
+      shift
+      ;;
+    --test=*)
+      TEST_RUN=1
+      TEST_OS=`echo $1 | sed -e 's/^[^=]*=//g'`
       shift
       ;;
     --output-name=*)
@@ -238,6 +245,22 @@ fi
 if [ $SHOW_VERSION_SHORT -eq 1 ]; then
   echo "v$VERSION"
   exit 0
+fi
+
+if [ $TEST_RUN -eq 1 ]; then
+  failed=0
+  if GOOS=$TEST_OS go test ./...; then
+    msg "${TEST_OS} tests passed!"
+  else
+    msg "${TEST_OS} tests failed!"
+    failed=1
+  fi
+
+  # If tests fail then fail the build.
+  if [ $failed == 1 ]; then
+    msg "Testing has failed. Stopping build!"
+    exit 1
+  fi
 fi
 
 # Update the version in this file

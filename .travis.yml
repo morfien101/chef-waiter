@@ -4,7 +4,7 @@ go:
 - '1.11'
 script:
 - go test -v ./...
-- "./build.sh -n -u -l -w -t"
+- "./build.sh -n -u -l -w -t --test=linux"
 notifications:
   email:
   - morfien101@gmail.com

@@ -20,6 +20,12 @@ func (c *FakeChefRunnerWorker) PeriodicRun() string {
 	return `peri-1234-1234-1234-1234`
 }
 
+// CustomRun will return a static string with onde to identify that it was a periodic job.
+// The string will statify the regex for guids
+func (c *FakeChefRunnerWorker) CustomRun(jobDetails string) string {
+	return `cust-1234-1234-1234-1234`
+}
+
 // InMaintenanceMode will return the maintenace value
 func (c *FakeChefRunnerWorker) InMaintenanceMode() bool {
 	return c.maintenance

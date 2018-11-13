@@ -2,9 +2,11 @@ package webengine
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -50,6 +52,7 @@ func New(
 	}
 
 	httpEngine.router.HandleFunc("/chefclient", httpEngine.registerChefRun).Methods("Get")
+	httpEngine.router.HandleFunc("/chefclient", httpEngine.registerChefCustomRun).Methods("Post")
 	httpEngine.router.HandleFunc("/chefclient/{guid}", httpEngine.getChefStatus).Methods("Get")
 	httpEngine.router.HandleFunc("/cheflogs/{guid}", httpEngine.getChefLogs).Methods("Get")
 	httpEngine.router.HandleFunc("/chef/nextrun", httpEngine.getNextChefRun).Methods("Get")
@@ -118,7 +121,32 @@ func (e *HTTPEngine) registerChefRun(w http.ResponseWriter, r *http.Request) {
 	}
 	guid := e.worker.OnDemandRun()
 	logs.DebugMessage(fmt.Sprintf("registerChefRun() - %s", guid))
+	json.NewEncoder(w).Encode(e.state.Read(guid))
+}
+
+func (e *HTTPEngine) registerChefCustomRun(w http.ResponseWriter, r *http.Request) {
 	setContentJSON(w)
+	if e.state.ReadRunLock() {
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprint(w, "{\"Error\":\"Chefwaiter is locked\"}\n")
+		return
+	}
+
+	defer r.Body.Close()
+	bodySlurp := make([]byte, 513)
+	n, err := r.Body.Read(bodySlurp)
+	if err != nil && err != io.EOF {
+		w.WriteHeader(http.StatusBadRequest)
+		e.logger.Errorf("Request to custom job failed while reading the body. Error: %s", err)
+		return
+	}
+	if n > 512 {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "{\"Error\":\"Body sent is too large. Max size 512 bytes.\"}\n")
+		return
+	}
+	guid := e.worker.CustomRun(string(bytes.TrimRight(bodySlurp, "\x00")))
+	logs.DebugMessage(fmt.Sprintf("registerChefCustomRun() - %s", guid))
 	json.NewEncoder(w).Encode(e.state.Read(guid))
 }
 

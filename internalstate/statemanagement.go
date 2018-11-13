@@ -114,7 +114,7 @@ func readStateFromDisk(stateFile string, logger logs.SysLogger) (*StateTable, er
 	return data, nil
 }
 
-func lintState(statusList map[string]*StatusDetails) map[string]*StatusDetails {
+func lintState(statusList map[string]*JobDetails) map[string]*JobDetails {
 	for k := range statusList {
 		if statusList[k].Status == "running" {
 			statusList[k].Status = "unknown"
