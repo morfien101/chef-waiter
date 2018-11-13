@@ -73,7 +73,6 @@ func (p *program) run() error {
 		logger.Errorf("Failed to make directory for statefile. Error: %s", err)
 		os.Exit(1)
 	}
-	fmt.Println("here")
 
 	// Start the log sweeper engine
 	chefLogWorker := cheflogs.New(runningConfig, logger)
