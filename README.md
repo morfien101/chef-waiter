@@ -2,6 +2,8 @@
 
 A simple HTTP(S) API wrapper around chef client.
 
+[![Build Status](https://travis-ci.org/morfien101/chef-waiter.svg?branch=master)](https://travis-ci.org/morfien101/chef-waiter)
+
 ![waiter](./README/waiter_T.png "chef waiter")
 
 ## What is the Chef Waiter
