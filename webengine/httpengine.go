@@ -61,6 +61,7 @@ func New(
 	httpEngine.router.HandleFunc("/chef/on", httpEngine.setChefRunEnabled).Methods("Get")
 	httpEngine.router.HandleFunc("/chef/off", httpEngine.setChefRunDisabled).Methods("Get")
 	httpEngine.router.HandleFunc("/chef/lastrun", httpEngine.getLastRunGUID).Methods("Get")
+	httpEngine.router.HandleFunc("/chef/allruns", httpEngine.getAllRuns).Methods("Get")
 	httpEngine.router.HandleFunc("/chef/enabled", httpEngine.getChefPeridoicRunStatus).Methods("Get")
 	httpEngine.router.HandleFunc("/chef/maintenance", httpEngine.getChefMaintenance).Methods("Get")
 	httpEngine.router.HandleFunc("/chef/maintenance/start/{i}", httpEngine.setChefMaintenance).Methods("Get")
@@ -111,6 +112,14 @@ func setContentJSON(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 }
 
+func jsonMarshal(x interface{}) ([]byte, error) {
+	return json.MarshalIndent(x, "", "  ")
+}
+
+func printJSON(w http.ResponseWriter, jsonbytes []byte) (int, error) {
+	return fmt.Fprint(w, string(jsonbytes), "\n")
+}
+
 // RegisterChefRun is called to run chef on the server.
 func (e *HTTPEngine) registerChefRun(w http.ResponseWriter, r *http.Request) {
 	setContentJSON(w)
@@ -121,7 +130,14 @@ func (e *HTTPEngine) registerChefRun(w http.ResponseWriter, r *http.Request) {
 	}
 	guid := e.worker.OnDemandRun()
 	logs.DebugMessage(fmt.Sprintf("registerChefRun() - %s", guid))
-	json.NewEncoder(w).Encode(e.state.Read(guid))
+	state := e.state.Read(guid)
+	jsonBytes, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "{\"Error\":\"Failed to read guid status.\"}\n")
+		return
+	}
+	printJSON(w, jsonBytes)
 }
 
 func (e *HTTPEngine) registerChefCustomRun(w http.ResponseWriter, r *http.Request) {
@@ -147,7 +163,13 @@ func (e *HTTPEngine) registerChefCustomRun(w http.ResponseWriter, r *http.Reques
 	}
 	guid := e.worker.CustomRun(string(bytes.TrimRight(bodySlurp, "\x00")))
 	logs.DebugMessage(fmt.Sprintf("registerChefCustomRun() - %s", guid))
-	json.NewEncoder(w).Encode(e.state.Read(guid))
+	jsonbytes, err := jsonMarshal(e.state.Read(guid))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "{\"Error\":\"Failed to read guid status.\"}\n")
+		return
+	}
+	printJSON(w, jsonbytes)
 }
 
 // GetChefStatus - writes the state of the requested guid.
@@ -155,7 +177,14 @@ func (e *HTTPEngine) getChefStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	logs.DebugMessage(fmt.Sprintf("getChefStatus() - %s", vars["guid"]))
 	setContentJSON(w)
-	json.NewEncoder(w).Encode(e.state.Read(vars["guid"]))
+	status := e.state.Read(vars["guid"])
+	jsonBytes, err := jsonMarshal(status)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "{\"Error\":\"Failed to read guid status.\"}\n")
+		return
+	}
+	printJSON(w, jsonBytes)
 }
 
 // GetStatus - Writes the applications internal status in json to the http writer.
@@ -166,6 +195,7 @@ func (e *HTTPEngine) getStatus(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}
 	w.Write(state)
+	fmt.Fprint(w, "\n")
 }
 
 // HealthCheck - Writes a HealthCheck message that can be used to check the state
@@ -279,6 +309,19 @@ func (e *HTTPEngine) getChefPeridoicRunStatus(w http.ResponseWriter, r *http.Req
 func (e *HTTPEngine) getLastRunGUID(w http.ResponseWriter, r *http.Request) {
 	setContentJSON(w)
 	fmt.Fprintf(w, "{\"last_run_guid\":\"%s\"}\n", e.state.ReadLastRunGUID())
+}
+
+func (e *HTTPEngine) getAllRuns(w http.ResponseWriter, r *http.Request) {
+	setContentJSON(w)
+	jobs := e.state.ReadAllJobs()
+
+	jsonJobs, err := json.MarshalIndent(jobs, "", "  ")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "{\"Error\":\"Failed to gather jobs.\"}\n")
+		return
+	}
+	fmt.Fprint(w, string(jsonJobs), "\n")
 }
 
 func (e *HTTPEngine) getChefMaintenance(w http.ResponseWriter, r *http.Request) {

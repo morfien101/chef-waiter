@@ -74,6 +74,7 @@ type StateTableReader interface {
 	ReadChefRunTimer() int64
 	ReadPeriodicRuns() bool
 	ReadLastRunGUID() string
+	ReadAllJobs() map[string]JobDetails
 	ReadRunLock() bool
 	InMaintenceMode() bool
 	ReadMaintenanceTimeEnd() int64
@@ -389,6 +390,17 @@ func (st *StateTable) ReadLastRunGUID() string {
 	st.rLock()
 	defer st.rUnlock()
 	return st.LastRunGUID
+}
+
+// ReadAllJobs will create a copy of the jobs as they are and return them to the caller.
+func (st *StateTable) ReadAllJobs() map[string]JobDetails {
+	st.rLock()
+	defer st.rUnlock()
+	retVal := make(map[string]JobDetails)
+	for guid, job := range st.Status {
+		retVal[guid] = *job
+	}
+	return retVal
 }
 
 // WriteLastRunGUID will write to the state table the guid passed in.

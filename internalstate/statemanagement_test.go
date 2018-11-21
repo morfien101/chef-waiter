@@ -37,3 +37,41 @@ func TestGetOldStates(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestReadAllJobs(t *testing.T) {
+	st := &StateTable{
+		Status: map[string]*JobDetails{
+			"1": &JobDetails{
+				Status:          "running",
+				ExitCode:        0,
+				RegisteredTime:  1,
+				OnDemand:        false,
+				CustomRun:       false,
+				CustomRunString: "",
+			},
+			"2": &JobDetails{
+				Status:          "registered",
+				ExitCode:        0,
+				RegisteredTime:  1,
+				OnDemand:        true,
+				CustomRun:       false,
+				CustomRunString: "",
+			},
+			"3": &JobDetails{
+				Status:          "registered",
+				ExitCode:        0,
+				RegisteredTime:  1,
+				OnDemand:        true,
+				CustomRun:       true,
+				CustomRunString: "test::run",
+			},
+		},
+	}
+
+	jobs := st.ReadAllJobs()
+
+	if len(jobs) != len(st.Status) {
+		t.Logf("Failed to copy all jobs. Wanted: %d, got %d", len(st.Status), len(jobs))
+		t.Fail()
+	}
+}

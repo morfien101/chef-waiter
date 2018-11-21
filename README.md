@@ -103,6 +103,7 @@ Below is a table describing the API for chef waiter. Chefwaiter was built with e
 |/chef/on| GET | Used to turn on automatic runs of chef
 |/chef/off| GET | Used to turn off automatic runs of chef
 |/chef/lastrun| GET | Returns the guid of the last run. It starts as blank when the service starts.
+|/chef/allruns| GET | Used to get the state of all jobs in chefwaiter currently.
 |/chef/enabled| GET | Used to check if chef is currently enabled to run periodically
 |/chef/maintenance| GET | Shows if the chef waiter is in maintenance mode currently.
 |/chef/maintenance/start/{i}| GET | Requests that chef waiter be put into maintenance mode for i number of minutes. This must be a whole number.

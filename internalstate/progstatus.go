@@ -134,5 +134,5 @@ func (as *AppStatusHandler) lastRun(cs *StateTable) {
 func (as *AppStatusHandler) JSONEncoded() ([]byte, error) {
 	as.RLock()
 	defer as.RUnlock()
-	return json.Marshal(as.state)
+	return json.MarshalIndent(as.state, "", "  ")
 }
