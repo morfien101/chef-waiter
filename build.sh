@@ -2,8 +2,8 @@
 
 # Set version
 VERSION_MAJOR=1
-VERSION_MINOR=0
-VERSION_PATCH=16
+VERSION_MINOR=1
+VERSION_PATCH=0
 VERSION_SPECIAL=
 VERSION=""
 
@@ -154,6 +154,9 @@ build_bin() {
 
   # Ensure the artifact directory is there
   ensure_artifact_dir $outdir
+  
+  # Do any fixes that need doing.
+  source ./customBuildFixes.sh
 
   # Start the build
   GOOS=$goos \
