@@ -3,7 +3,8 @@ install: true
 go:
 - '1.11'
 script:
-- go test -v ./...
+- go get -u github.com/kardianos/govendor
+- govendor test -v ./...
 - "./build.sh -n -u -l -w -t"
 notifications:
   email:
