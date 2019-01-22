@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"text/template"
 	"time"
@@ -46,15 +45,8 @@ func (s *sysv) configPath() (cp string, err error) {
 	cp = "/etc/init.d/" + s.Config.Name
 	return
 }
-
 func (s *sysv) template() *template.Template {
-	customScript := s.Option.string(optionSysvScript, "")
-
-	if customScript != "" {
-		return template.Must(template.New("").Funcs(tf).Parse(customScript))
-	} else {
-		return template.Must(template.New("").Funcs(tf).Parse(sysvScript))
-	}
+	return template.Must(template.New("").Funcs(tf).Parse(sysvScript))
 }
 
 func (s *sysv) Install() error {
@@ -144,22 +136,6 @@ func (s *sysv) Run() (err error) {
 	return s.i.Stop(s)
 }
 
-func (s *sysv) Status() (Status, error) {
-	_, out, err := runWithOutput("service", s.Name, "status")
-	if err != nil {
-		return StatusUnknown, err
-	}
-
-	switch {
-	case strings.HasPrefix(out, "Running"):
-		return StatusRunning, nil
-	case strings.HasPrefix(out, "Stopped"):
-		return StatusStopped, nil
-	default:
-		return StatusUnknown, ErrNotInstalled
-	}
-}
-
 func (s *sysv) Start() error {
 	return run("service", s.Name, "start")
 }
@@ -229,7 +205,7 @@ case "$1" in
         if is_running; then
             echo -n "Stopping $name.."
             kill $(get_pid)
-            for i in $(seq 1 10)
+            for i in {1..10}
             do
                 if ! is_running; then
                     break

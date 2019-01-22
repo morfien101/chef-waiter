@@ -8,15 +8,16 @@ import (
 	"time"
 
 	"github.com/morfien101/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/metrics"
 )
 
 const statefile = "stateTable.db"
 
 // GetOldStates - returns all the old state uuids.
-func (st *StateTable) GetOldStates(orignalMap map[string]int64) (del []string) {
+func (st *StateTable) GetOldStates(originalMap map[string]int64) (del []string) {
 	logs.DebugMessage("GetOldStates()")
 	var states = []Run{}
-	for k, v := range orignalMap {
+	for k, v := range originalMap {
 		states = append(states, Run{k, v})
 	}
 
@@ -28,14 +29,14 @@ func (st *StateTable) GetOldStates(orignalMap map[string]int64) (del []string) {
 	By(times).Sort(states)
 
 	// Make a list of the guids to be returned
-	guidsSlice := []string{}
+	guidSlice := []string{}
 	for i := 0; i <= len(states)-1; i++ {
-		guidsSlice = append(guidsSlice, states[i].guid)
+		guidSlice = append(guidSlice, states[i].guid)
 	}
 	// return the from position 10
 	// This would give us the 11th+ guids
-	logs.DebugMessage(fmt.Sprintf("GetOldStates() returned: %v", guidsSlice[st.readStateTableSize():]))
-	return guidsSlice[st.readStateTableSize():]
+	logs.DebugMessage(fmt.Sprintf("GetOldStates() returned: %v", guidSlice[st.readStateTableSize():]))
+	return guidSlice[st.readStateTableSize():]
 }
 
 // ClearOldRuns - Is used to prevent memory leaking by deleting unneeded states.
@@ -54,7 +55,9 @@ func (st *StateTable) ClearOldRuns() {
 		} else {
 			logs.DebugMessage(fmt.Sprintf("State Table size: %d/%d", st.len(), st.readStateTableSize()))
 		}
+		metrics.Gauge("state_table_size", int64(st.len()), nil)
 	}
+
 }
 
 // PersistState - will call the SaveStateToDisk at a time interval.

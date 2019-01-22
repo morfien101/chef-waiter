@@ -5,11 +5,13 @@ import (
 	"os"
 
 	"github.com/kardianos/service"
+
 	"github.com/morfien101/chef-waiter/cheflogs"
 	"github.com/morfien101/chef-waiter/chefrunner"
 	"github.com/morfien101/chef-waiter/config"
 	"github.com/morfien101/chef-waiter/internalstate"
 	"github.com/morfien101/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/metrics"
 	"github.com/morfien101/chef-waiter/webengine"
 )
 
@@ -49,29 +51,41 @@ func (p *program) Stop(s service.Service) error {
 func (p *program) run() error {
 	errChan := make(chan error, 20)
 	// read the file from the standard locations
-	//   - We could use an environment variable here as ther is no other way we know anything yet.
+	//   - We could use an environment variable here as there is no other way we know anything yet.
 	logger.Infof("Starting Chefwaiter with version: %s", VERSION)
 	// read the file from the standard locations
-	// Use an environment variable here as ther is no other way we know anything yet.
+	// Use an environment variable here as there is no other way we know anything yet.
 	runningConfig, err := config.New(os.Getenv("CHEFWAITER_CONFIG"), logger)
 	if err != nil {
 		logger.Error(err)
-		os.Exit(2)
+		terminate(2)
 	}
-
 	logs.TurnDebuggingOn(logger, runningConfig.Debug())
-
+	// This is the first place that we can actually send a metric because we now know
+	// if we need to.
+	if runningConfig.MetricsEnabled {
+		logs.DebugMessage("Starting metrics client.")
+		if runningConfig.MetricsDefaultTags["host"] == "" {
+			hostname, err := os.Hostname()
+			if err != nil {
+				hostname = "not_available"
+			}
+			runningConfig.MetricsDefaultTags["host"] = hostname
+		}
+		metrics.Setup(runningConfig.MetricsHost, runningConfig.MetricsDefaultTags)
+	}
+	metrics.Incr("starting", 1, map[string]string{"version": VERSION})
 	logs.DebugMessage("Starting Service run() function.")
 	// Create the directory for logs
 	if err := os.MkdirAll(runningConfig.LogLocation(), 0755); err != nil {
 		logger.Errorf("Failed to make directories for logs. Error: %s", err)
-		os.Exit(1)
+		terminate(1)
 	}
 
 	// Create the directory for stateFile
 	if err := os.MkdirAll(runningConfig.StateFileLocation(), 0755); err != nil {
 		logger.Errorf("Failed to make directory for statefile. Error: %s", err)
-		os.Exit(1)
+		terminate(1)
 	}
 
 	// Start the log sweeper engine
@@ -111,10 +125,10 @@ func (p *program) run() error {
 	select {
 	case err := <-errChan:
 		logger.Errorf("We got a critical error. Stopping application. Error: %s", err)
-		// This is a hack because the service wriapper doesn't stop the application
+		// This is a hack because the service wrapper doesn't stop the application
 		// When we return an error.
-		// Really rhe other application should run with context and we cancle them also.
-		os.Exit(1)
+		// Really rhe other application should run with context and we cancel them also.
+		terminate(1)
 		return nil
 	case <-p.exit:
 		// This case statement can be used to tear down the service and save
@@ -128,7 +142,14 @@ func (p *program) run() error {
 		if err != nil {
 			logger.Error(err)
 		}
+		metrics.Incr("shutting_down", 1, map[string]string{"exitCode": fmt.Sprintf("%d", 0), "version": VERSION})
+		metrics.Shutdown()
 		p.finshed <- true
 		return nil
 	}
+}
+
+func terminate(exitcode int) {
+	metrics.Incr("shutting_down", 1, map[string]string{"exitCode": fmt.Sprintf("%d", exitcode), "version": VERSION})
+	os.Exit(exitcode)
 }

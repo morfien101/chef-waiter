@@ -64,6 +64,9 @@ package service // import "github.com/kardianos/service"
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
+
+	"github.com/kardianos/osext"
 )
 
 const (
@@ -75,27 +78,10 @@ const (
 	optionUserServiceDefault   = false
 	optionSessionCreate        = "SessionCreate"
 	optionSessionCreateDefault = false
-	optionLogOutput            = "LogOutput"
-	optionLogOutputDefault     = false
 
 	optionRunWait      = "RunWait"
 	optionReloadSignal = "ReloadSignal"
 	optionPIDFile      = "PIDFile"
-
-	optionSystemdScript = "SystemdScript"
-	optionSysvScript    = "SysvScript"
-	optionUpstartScript = "UpstartScript"
-	optionLaunchdConfig = "LaunchdConfig"
-)
-
-// Status represents service status as an byte value
-type Status byte
-
-// Status of service represented as an byte
-const (
-	StatusUnknown Status = iota // Status is unable to be determined due to an error or it was not installed.
-	StatusRunning
-	StatusStopped
 )
 
 // Config provides the setup for a Service. The Name field is required.
@@ -120,20 +106,22 @@ type Config struct {
 
 	// System specific options.
 	//  * OS X
-	//    - LaunchdConfig string ()      - Use custom launchd config
-	//    - KeepAlive     bool   (true)
-	//    - RunAtLoad     bool   (false)
-	//    - UserService   bool   (false) - Install as a current user service.
-	//    - SessionCreate bool   (false) - Create a full user session.
+	//    - KeepAlive     bool (true)
+	//    - RunAtLoad     bool (false)
+	//    - UserService   bool (false) - Install as a current user service.
+	//    - SessionCreate bool (false) - Create a full user session.
 	//  * POSIX
-	//    - SystemdScript string ()                 - Use custom systemd script
-	//    - UpstartScript string ()                 - Use custom upstart script
-	//    - SysvScript    string ()                 - Use custom sysv script
-	//    - RunWait       func() (wait for SIGNAL)  - Do not install signal but wait for this function to return.
-	//    - ReloadSignal  string () [USR1, ...]     - Signal to send on reaload.
-	//    - PIDFile       string () [/run/prog.pid] - Location of the PID file.
-	//    - LogOutput     bool   (false)            - Redirect StdErr & StdOut to files.
+	//    - RunWait      func() (wait for SIGNAL) - Do not install signal but wait for this function to return.
+	//    - ReloadSignal string () [USR1, ...] - Signal to send on reaload.
+	//    - PIDFile     string () [/run/prog.pid] - Location of the PID file.
 	Option KeyValue
+}
+
+func (c *Config) execPath() (string, error) {
+	if len(c.Executable) != 0 {
+		return filepath.Abs(c.Executable)
+	}
+	return osext.Executable()
 }
 
 var (
@@ -142,12 +130,10 @@ var (
 )
 
 var (
-	// ErrNameFieldRequired is returned when Config.Name is empty.
+	// ErrNameFieldRequired is returned when Conifg.Name is empty.
 	ErrNameFieldRequired = errors.New("Config.Name field is required.")
 	// ErrNoServiceSystemDetected is returned when no system was detected.
 	ErrNoServiceSystemDetected = errors.New("No service system detected.")
-	// ErrNotInstalled is returned when the service is not installed
-	ErrNotInstalled = errors.New("the service is not installed")
 )
 
 // New creates a new service based on a service interface and configuration.
@@ -346,9 +332,6 @@ type Service interface {
 	// String displays the name of the service. The display name if present,
 	// otherwise the name.
 	String() string
-
-	// Status returns the current service status.
-	Status() (Status, error)
 }
 
 // ControlAction list valid string texts to use in Control.

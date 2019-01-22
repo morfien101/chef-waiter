@@ -11,7 +11,7 @@ A simple HTTP(S) API wrapper around chef client.
 The Chef Waiter service was created to enable on demand runs of chef without the use of push jobs.
 Push jobs are not available when using the managed chef service from opscode.
 
-This leaves you in a situation that you have to run chef __very__ frequenty or just wait for changes to roll out. This poses an issue on CD pipelines as the CD pipeline is non-deterministic. With out knowing if a chef run passes or fails you don't know if the deploy worked.
+This leaves you in a situation that you have to run chef __very__ frequently or just wait for changes to roll out. This poses an issue on CD pipelines as the CD pipeline is non-deterministic. With out knowing if a chef run passes or fails you don't know if the deploy worked.
 
 ## I just use SSH or Winrm, so why do I need this?
 
@@ -21,12 +21,12 @@ When using the chef waiter it can only do one thing... Run chef.
 
 The chef waiter was built with CI/CD in mind and all responses are mainly for integration with these pipelines. This makes integration easier than running chef via SSH and WinRM.
 
-A bonus point, chef waiter will run chef under its control and track it. Therefore if you have unstalble connections you don't need to worry about it killing your chef runs.
+A bonus point, chef waiter will run chef under its control and track it. Therefore if you have unstable connections you don't need to worry about it killing your chef runs.
 
 ## How do I use Chef Waiter
 
 The following URLs are available to you.
-The are desinged to be used by API clients rather than Web browsers. They return JSON strings mostly or simple text.
+The are designed to be used by API clients rather than Web browsers. They return JSON strings mostly or simple text.
 
 The default port for running Chef Waiter on is 8901 TCP.
 
@@ -89,7 +89,7 @@ $> curl http://127.0.0.1:8901/chef/lastrun
 }
 ```
 
-Chefwaiter will determin if the chef run passed or failed based on the exit code of the run. If the run passed you will see a status of `complete` if it failed you will see `failed`.
+Chefwaiter will determine if the chef run passed or failed based on the exit code of the run. If the run passed you will see a status of `complete` if it failed you will see `failed`.
 
 Below is a table describing the API for chef waiter. Chefwaiter was built with easy understanding for humans in mind. MOST the requests are GET based. There is very little that chefwaiter needs in terms of data and these are passed in via the URL.
 
@@ -119,6 +119,7 @@ Below is a table describing the API for chef waiter. Chefwaiter was built with e
 ## Installing
 
 ### Preferred option
+
 The chef waiter can be installed via the [chef-waiter cookbook](https://github.com/morfien101/chef-waiter-cookbook).
 
 ### Optional method
@@ -149,13 +150,13 @@ The service will need port **8901-TCP** open to communicate with the outside wor
 
 ### Firewall access
 
-| Port | Protocol | Discription |
+| Port | Protocol | Description |
 |----|--------|-----------|
 | 8901 | TCP | Used to host the HTTP service for Chef Waiter
 
 ### Directories of interest
 
-|Directory|OS|Discription|
+|Directory|OS|Description|
 |---------|--|-----------|
 |/etc/chefwaiter/ | Linux | Used to store configuration and state files for Chef Waiter|
 |/usr/local/bin/ | Linux | Location the binary is stored on a linux computer|
@@ -190,7 +191,13 @@ An example file is below:
     "run_interval": 10,
     "debug": false,
     "logs_location": /var/log/chefwaiter,
-    "state_location": /etc/chefwaiter
+    "state_location": /etc/chefwaiter,
+    "metrics_enabled": true,
+    "metrics_host": "statsd-client.local:8125",
+    "metrics_default_tags": {
+        "tag_name": "value",
+        "tag_name": "value"
+    }
 }
 ```
 
@@ -206,7 +213,10 @@ Default Configuration settings:
 | state_location | C:\Program Files\chefwaiter | /etc/chefwaiter | Chefwaiter writes a state file to disk periodically to maintain state through reboots. This settings dictates where that file should be kept. |
 | enable_tls | false | false | Should Chefwaiter us TLS on the web server. |
 | certificate_path | ./cert.crt | ./cert.crt | location of the TLS certificate. |
-| key_path | ./cert.key | ./cert.key | Location of the TLS certifiates private key. |
+| key_path | ./cert.key | ./cert.key | Location of the TLS certificates private key. |
+metrics_enabled | false | false | Turn on the statsd metric shipper.
+metrics_host | 127.0.0.1:8125 | 127.0.0.1:8125 | Location of the statsd server.
+metrics_default_tags | nil | nil | Custom tags that you would like to add in key value pairs.
 
 ## Maintenance mode
 
@@ -218,17 +228,17 @@ Therefore any periodic runs will be skipped and you would have to wait for the n
 
 Maintenance mode has no effect to **on demand** runs.
 
-This will allow you to control the runs but also to stop uncontrolled runs from occuring while you are doing deployments.
+This will allow you to control the runs but also to stop uncontrolled runs from occurring while you are doing deployments.
 
 ## Locking the chef waiter
 
-Chef waiter has a lock out mode in it. This allows you to request that a server not run chef `on demand` or `periodically`. 
+Chef waiter has a lock out mode in it. This allows you to request that a server not run chef `on demand` or `periodically`.
 
 This is useful for servers that are in production that you wish to protect from accidental changes.
 
-Use `/chef/lock` for checkting the status of the lock.
+Use `/chef/lock` for checking the status of the lock.
 
-`/chef/lock/set` and `/chef/lock/remove` will enable and disable the lock respectivly.
+`/chef/lock/set` and `/chef/lock/remove` will enable and disable the lock respectively.
 
 ## Chef service replacement
 
@@ -248,7 +258,7 @@ The periodic runs can also be controlled via the API. You can change the interva
 
 The logs for the periodic runs are stored under the same directory as on demand runs. They are also subject to the same clean up process. This means that you do not need to rotate logs as the chef waiter will do that for you.
 
-## Examp Flow
+## Example Flow
 
 1. /chefclient (gather the GUID from this step)
 1. /chefclient/<guid from step 1>
@@ -262,7 +272,7 @@ The service will log to the default logging system for the OS that it is running
 
 Logs for chef runs will be contained in files that have the name set to the GUID that represents the chef run.
 
-The files will be cleared out by the chef waiter periodically. This is triggered every minute and is contolled by a flag to specify the number of log files that you want to keep. The default is 20.
+The files will be cleared out by the chef waiter periodically. This is triggered every minute and is controlled by a flag to specify the number of log files that you want to keep. The default is 20.
 This can be changed as well as the location of the logs by settings in the above configuration file.
 
 Log file paths will look like below:
@@ -274,3 +284,22 @@ Log file paths will look like below:
 # Windows
 * C:\logs\chefwaiter\0038cf85-68a1-4b8a-8898-f56261f02d65.log
 ```
+
+## Metrics
+
+Chef waiter sends out statsd metrics to an endpoint dictated by the `metrics_host` configuration value. Metrics need to be enabled by setting the `metrics_enabled` to `true` in the configuration file. If the values is not set no metrics will be sent.
+
+All metrics will have a tag `host` which will be the host name or `not_available` if it can't be found for some reason.
+The hostname can be overridden in the configuration by setting a tag called `host`.
+
+Chef waiter will try to lookup the DNS record of the endpoint once ever 2 minutes. This allows for DNS name changes to happen with out the need to restart the chef waiter. Useful in modern distributed compute environments.
+
+The following metrics are available.
+
+Metric Name | Metric Tags | Description
+---|---|---
+chefwaiter_starting | version: [chefwaiter_version] | Event sent when starting the chef waiter.
+chefwaiter_shutting_down | version: [chefwaiter_version] | Event sent when stopping the chef waiter.
+chefwaiter_state_table_size | none | How large the state table is. This should be the same as the number of logs being held by the chef waiter.
+chefwaiter_chef_run_time | none | How long the chef run took in Milliseconds
+chefwaiter_jobs_running | none | How many jobs are running. This should only be 1 or 0 at any given time. Used to track run time.

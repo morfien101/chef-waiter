@@ -92,17 +92,20 @@ func (vc *ValuesContainer) KeyPath() string {
 
 // ValuesContainer is a struct that holds the values of the configuration file.
 type ValuesContainer struct {
-	InternalStateTableSize    int    `json:"state_table_size"`
-	InternalControlChefRun    bool   `json:"periodic_chef_runs"`
-	InternalPeriodicTimer     int64  `json:"run_interval"`
-	InternalDebug             bool   `json:"debug"`
-	InternalLogLocation       string `json:"logs_location"`
-	InternalStateFileLocation string `json:"state_location"`
-	InternalListenPort        int    `json:"listen_port"`
-	InternalListenAddress     string `json:"listen_address"`
-	InternalTLSEnabled        bool   `json:"enable_tls"`
-	InternalCertPath          string `json:"certificate_path"`
-	InternalKeyPath           string `json:"key_path"`
+	InternalStateTableSize    int               `json:"state_table_size"`
+	InternalControlChefRun    bool              `json:"periodic_chef_runs"`
+	InternalPeriodicTimer     int64             `json:"run_interval"`
+	InternalDebug             bool              `json:"debug"`
+	InternalLogLocation       string            `json:"logs_location"`
+	InternalStateFileLocation string            `json:"state_location"`
+	InternalListenPort        int               `json:"listen_port"`
+	InternalListenAddress     string            `json:"listen_address"`
+	InternalTLSEnabled        bool              `json:"enable_tls"`
+	InternalCertPath          string            `json:"certificate_path"`
+	InternalKeyPath           string            `json:"key_path"`
+	MetricsEnabled            bool              `json:"metrics_enabled"`
+	MetricsHost               string            `json:"metrics_host"`
+	MetricsDefaultTags        map[string]string `json:"metrics_default_tags"`
 	sync.RWMutex
 }
 
@@ -119,6 +122,8 @@ func New(fileLocation string, logger logs.SysLogger) (*ValuesContainer, error) {
 		InternalListenAddress:  "0.0.0.0",
 		InternalCertPath:       "./cert.crt",
 		InternalKeyPath:        "./key.key",
+		MetricsHost:            "127.0.0.1:8125",
+		MetricsDefaultTags:     make(map[string]string),
 	}
 	// Call OS_default for config files
 	nc.writeConfigFileOSDefaults()

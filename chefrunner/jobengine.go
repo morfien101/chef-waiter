@@ -9,6 +9,7 @@ import (
 	"github.com/morfien101/chef-waiter/cmd"
 	"github.com/morfien101/chef-waiter/internalstate"
 	"github.com/morfien101/chef-waiter/logs"
+	"github.com/morfien101/chef-waiter/metrics"
 )
 
 // Request is a RunRequest that is used to push messaged to a queue which will trigger runs.
@@ -21,7 +22,7 @@ type Worker interface {
 	CustomRun(string) string
 }
 
-// RunRequest holds 2 channles for on demand runs and periodic runs. It also has the functions to add jobs to the queues.
+// RunRequest holds 2 channels for on demand runs and periodic runs. It also has the functions to add jobs to the queues.
 type RunRequest struct {
 	onDemandWorkQ chan string
 	periodicWorkQ chan string
@@ -73,21 +74,50 @@ func New(state *internalstate.StateTable, chefLogWorker cheflogs.WorkerReader, l
 		logger:        logger,
 		chefLogWorker: chefLogWorker,
 	}
+
 	go worker.supervisor()
 	go worker.periodicRunEngine()
 	return worker
 }
 
 func (r *RunRequest) supervisor() {
+	// Preamble for metrics shipping
+	d := "demand"
+	p := "periodic"
+	metricName := "jobs_running"
+
+	start := func(jobType string) {
+		metrics.Gauge(metricName, 1, map[string]string{"type": jobType})
+	}
+	finished := func(jobType string) {
+		metrics.Gauge(metricName, 0, map[string]string{"type": jobType})
+	}
+
+	// Reset the gauge at the beginning.
+	logs.DebugMessage("Resetting the jobs_running metric.")
+	for _, jobType := range []string{d, p} {
+		metrics.Gauge(metricName, 0, map[string]string{"type": jobType})
+	}
+
+	timer := func(f func(string), guid, jobType string) {
+		start := time.Now()
+		f(guid)
+		metrics.Timing("chef_run_time", int64(time.Since(start)/time.Millisecond), map[string]string{"type": jobType})
+	}
+
 	for {
 		select {
 		case guid := <-r.periodicWorkQ:
 			//run chef as periodic job
 			if r.state.ReadPeriodicRuns() {
-				r.startChefRunProcess(guid)
+				start(p)
+				timer(r.startChefRunProcess, guid, p)
+				finished(p)
 			}
 		case guid := <-r.onDemandWorkQ:
-			r.startChefRunProcess(guid)
+			start(d)
+			timer(r.startChefRunProcess, guid, d)
+			finished(d)
 		}
 	}
 }

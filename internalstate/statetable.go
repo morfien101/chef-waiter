@@ -14,12 +14,12 @@ import (
 	"github.com/morfien101/chef-waiter/logs"
 )
 
-// JobDetails - Holds data about indiviual runs.
+// JobDetails - Holds data about individual runs.
 // Status can be one of the following: registered, running, complete, unknown, abandoned
 // unknown: is set if the data is read from a static state file on start up and the
-// job was previosly set to running.
+// job was previously set to running.
 // abandoned: is set if the data is read from a static state file on start up and the
-// job was previosly set to registered.
+// job was previously set to registered.
 type JobDetails struct {
 	Status          string `json:"status"`
 	ExitCode        int    `json:"exitcode"`
@@ -42,7 +42,7 @@ type JobDetails struct {
 type StateTable struct {
 	mutexLock sync.RWMutex
 	Status    map[string]*JobDetails
-	// Used to hold the epoc time when chef last run and completed good or bad.
+	// Used to hold the epoch time when chef last run and completed good or bad.
 	LastRunStartTime int64
 	LastRunGUID      string
 	ChefRunTimer     int64
@@ -103,12 +103,12 @@ func New(
 ) *StateTable {
 	diskState, err := readStateFromDisk(getStatePath(config.StateFileLocation(), statefile), logger)
 	if err != nil {
-		logger.Warningf("There wasn an error reading the state from disk. Creating a new internal state. The error was: %s", err)
+		logger.Warningf("There was an error reading the state from disk. Creating a new internal state. The error was: %s", err)
 		// initialize the globals that we need.
 		return defaultStateTable(config, chefLogsWorker, logger)
 	}
 	// We need to set the values to what the configuration file states if we have one.
-	// If it is not there thent he values would be the default ones.
+	// If it is not there then the values would be the default ones.
 	// If we don't do this then new values in configuration files are not read in when we find a statefile on disk.
 	diskState.resetStateTable(config, chefLogsWorker, logger)
 	return diskState
@@ -357,7 +357,7 @@ func (st *StateTable) WriteChefRunTimer(i int64) {
 	st.lock()
 	defer st.unlock()
 	st.ChefRunTimer = i * 60
-	st.logger.Infof("Chef peridodic interval changed to every %d minutes.", i)
+	st.logger.Infof("Chef periodic interval changed to every %d minutes.", i)
 }
 
 // ReadPeriodicRuns will return the value of PeriodicRuns.
@@ -411,10 +411,10 @@ func (st *StateTable) WriteLastRunGUID(guid string) {
 }
 
 // WriteMaintenanceTimeEnd will write when Maintenance must end. It takes an int64 as and assumes this is an epoch
-func (st *StateTable) WriteMaintenanceTimeEnd(epoc int64) {
+func (st *StateTable) WriteMaintenanceTimeEnd(epoch int64) {
 	st.lock()
 	defer st.unlock()
-	st.MaintenanceTimeEnd = epoc
+	st.MaintenanceTimeEnd = epoch
 }
 
 // ReadMaintenanceTimeEnd will return the value of MaintenanceTimeEnd. It is an epoch represented as an int64

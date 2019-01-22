@@ -1,0 +1,49 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "r9GVMDTXYTQVaMD9b6PqALKY3bY=",
+			"path": "github.com/kardianos/service",
+			"revision": "6d3a0ee7d3425d9d835debc51a0ca1ffa28f4893",
+			"revisionTime": "2016-11-19T21:06:48Z"
+		},
+		{
+			"checksumSHA1": "oDBzj9fJz66Hzm5w+Arv5xGpJu8=",
+			"path": "github.com/morfien101/go-statsd",
+			"revision": "ea2a5c732c8cbe56ebe696019b5150ca523dd7a9",
+			"revisionTime": "2019-01-22T09:34:17Z"
+		},
+		{
+			"checksumSHA1": "kv3jbPJGCczHVQ7g51am1MxlD1c=",
+			"path": "golang.org/x/text/internal/gen",
+			"revision": "506f9d5c962f284575e88337e7d9296d27e729d3",
+			"revisionTime": "2017-01-31T20:38:18Z"
+		},
+		{
+			"checksumSHA1": "ag7y2tiDc1Yx4fxBrA/CuwKZptg=",
+			"path": "golang.org/x/text/internal/testtext",
+			"revision": "506f9d5c962f284575e88337e7d9296d27e729d3",
+			"revisionTime": "2017-01-31T20:38:18Z"
+		},
+		{
+			"checksumSHA1": "LXVplVWZWrHA8yelCVlNvlcwIMs=",
+			"path": "golang.org/x/text/transform",
+			"revision": "506f9d5c962f284575e88337e7d9296d27e729d3",
+			"revisionTime": "2017-01-31T20:38:18Z"
+		},
+		{
+			"checksumSHA1": "Ysu8WjwCUqUtLY5ngP3t+TRBoqg=",
+			"path": "golang.org/x/text/unicode/cldr",
+			"revision": "506f9d5c962f284575e88337e7d9296d27e729d3",
+			"revisionTime": "2017-01-31T20:38:18Z"
+		},
+		{
+			"checksumSHA1": "n4n4z6+wLrs/vWj2BvfUz5DBY2c=",
+			"path": "golang.org/x/text/unicode/norm",
+			"revision": "506f9d5c962f284575e88337e7d9296d27e729d3",
+			"revisionTime": "2017-01-31T20:38:18Z"
+		}
+	],
+	"rootPath": "github.com/morfien101/chef-waiter"
+}

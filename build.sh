@@ -160,7 +160,7 @@ build_bin() {
 
   # Start the build
   GOOS=$goos \
-  go build \
+  govendor build \
   -ldflags "-X main.VERSION=$VERSION" \
   -a \
   -installsuffix cgo \
