@@ -3,10 +3,10 @@
 	"ignore": "",
 	"package": [
 		{
-			"checksumSHA1": "r9GVMDTXYTQVaMD9b6PqALKY3bY=",
+			"checksumSHA1": "/PemO0efzl2bGHw/pEfwgU7sbhQ=",
 			"path": "github.com/kardianos/service",
-			"revision": "6d3a0ee7d3425d9d835debc51a0ca1ffa28f4893",
-			"revisionTime": "2016-11-19T21:06:48Z"
+			"revision": "4c239ee84e7bb93441b1b6a3f2db62d40e0e6cbd",
+			"revisionTime": "2018-11-15T00:55:16Z"
 		},
 		{
 			"checksumSHA1": "oDBzj9fJz66Hzm5w+Arv5xGpJu8=",
