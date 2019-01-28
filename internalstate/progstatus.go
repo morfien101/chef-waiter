@@ -26,6 +26,7 @@ type AppStatus struct {
 	Healthy       bool   `json:"healthy"`
 	InMaintenance bool   `json:"in_maintenance_mode"`
 	LastRunGUID   string `json:"last_run_id"`
+	Locked        bool   `json:"locked"`
 }
 
 // AppStatusReader will show how to use the AppStatusHandler
@@ -43,20 +44,21 @@ func NewAppStatus(v string, currentState *StateTable, logger logs.SysLogger) *Ap
 		hn = "na"
 		logger.Errorf("Failed to determin the hostname. Error: %s", err)
 	}
-	Appstatus := new(AppStatusHandler)
-	Appstatus.logger = logger
-	Appstatus.state = &AppStatus{
+	appStatus := new(AppStatusHandler)
+	appStatus.logger = logger
+	appStatus.state = &AppStatus{
 		ServiceName: "ChefWaiter",
 		Version:     v,
 		Healthy:     true,
 		HostName:    hn,
 	}
-	Appstatus.setTime()
-	Appstatus.setVersion(v)
-	go Appstatus.reconcileChefVersion()
-	go Appstatus.maintenanceMode(currentState)
-	go Appstatus.lastRun(currentState)
-	return Appstatus
+	appStatus.setTime()
+	appStatus.setVersion(v)
+	go appStatus.reconcileChefVersion()
+	go appStatus.maintenanceMode(currentState)
+	go appStatus.lastRun(currentState)
+	go appStatus.locked(currentState)
+	return appStatus
 }
 
 // setTime - is used to set the time of the state in AppStatusHandler
@@ -127,7 +129,24 @@ func (as *AppStatusHandler) lastRun(cs *StateTable) {
 			as.Unlock()
 		}
 	}
+}
 
+func (as *AppStatusHandler) locked(cs *StateTable) {
+	// Do it once then loop
+	lockedFunc := func() {
+		as.Lock()
+		as.state.Locked = cs.ReadRunLock()
+		as.Unlock()
+	}
+
+	lockedFunc()
+	ticker := time.NewTicker(time.Second * 10)
+	for {
+		select {
+		case <-ticker.C:
+			lockedFunc()
+		}
+	}
 }
 
 // JSONEncoded returns the JSON encoded state with an error if anything goes wrong.
