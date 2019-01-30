@@ -82,27 +82,22 @@ func New(state *internalstate.StateTable, chefLogWorker cheflogs.WorkerReader, l
 
 func (r *RunRequest) supervisor() {
 	// Preamble for metrics shipping
-	d := "demand"
-	p := "periodic"
-	metricName := "jobs_running"
-
 	start := func(jobType string) {
-		metrics.Gauge(metricName, 1, map[string]string{"type": jobType})
+		metrics.Incr("chefwaiter_run_starting", 1, map[string]string{"type": jobType})
 	}
+
 	finished := func(jobType string) {
-		metrics.Gauge(metricName, 0, map[string]string{"type": jobType})
+		metrics.Incr("chefwaiter_run_finished", 1, map[string]string{"type": jobType})
 	}
 
 	// Reset the gauge at the beginning.
-	logs.DebugMessage("Resetting the jobs_running metric.")
-	for _, jobType := range []string{d, p} {
-		metrics.Gauge(metricName, 0, map[string]string{"type": jobType})
-	}
 
 	timer := func(f func(string), guid, jobType string) {
+		start(jobType)
 		start := time.Now()
 		f(guid)
 		metrics.Timing("chef_run_time", int64(time.Since(start)/time.Millisecond), map[string]string{"type": jobType})
+		finished(jobType)
 	}
 
 	for {
@@ -110,14 +105,10 @@ func (r *RunRequest) supervisor() {
 		case guid := <-r.periodicWorkQ:
 			//run chef as periodic job
 			if r.state.ReadPeriodicRuns() {
-				start(p)
-				timer(r.startChefRunProcess, guid, p)
-				finished(p)
+				timer(r.startChefRunProcess, guid, "periodic")
 			}
 		case guid := <-r.onDemandWorkQ:
-			start(d)
-			timer(r.startChefRunProcess, guid, d)
-			finished(d)
+			timer(r.startChefRunProcess, guid, "demand")
 		}
 	}
 }
