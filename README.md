@@ -302,4 +302,5 @@ chefwaiter_starting | version: [chefwaiter_version] | Event sent when starting t
 chefwaiter_shutting_down | version: [chefwaiter_version] | Event sent when stopping the chef waiter.
 chefwaiter_state_table_size | none | How large the state table is. This should be the same as the number of logs being held by the chef waiter.
 chefwaiter_chef_run_time | none | How long the chef run took in Milliseconds
-chefwaiter_jobs_running | none | How many jobs are running. This should only be 1 or 0 at any given time. Used to track run time.
+chefwaiter_run_starting | job_type: ["periodic", "demand"] | A chef run has started.
+chefwaiter_run_finished | job_type: ["periodic", "demand"] | A chef run has finished.
