@@ -83,14 +83,12 @@ func New(state *internalstate.StateTable, chefLogWorker cheflogs.WorkerReader, l
 func (r *RunRequest) supervisor() {
 	// Preamble for metrics shipping
 	start := func(jobType string) {
-		metrics.Incr("chefwaiter_run_starting", 1, map[string]string{"type": jobType})
+		metrics.Incr("run_starting", 1, map[string]string{"type": jobType})
 	}
 
 	finished := func(jobType string) {
-		metrics.Incr("chefwaiter_run_finished", 1, map[string]string{"type": jobType})
+		metrics.Incr("run_finished", 1, map[string]string{"type": jobType})
 	}
-
-	// Reset the gauge at the beginning.
 
 	timer := func(f func(string), guid, jobType string) {
 		start(jobType)
