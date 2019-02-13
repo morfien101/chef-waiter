@@ -150,6 +150,7 @@ func (e *HTTPEngine) registerChefCustomRun(w http.ResponseWriter, r *http.Reques
 		if value[0] == "true" {
 			checklock = false
 			logs.DebugMessage(fmt.Sprintln("registerChefCustomRun() running regardless of lock."))
+			e.logger.Infof("Running a custom job regardless of lock from %s\n", r.RemoteAddr)
 		}
 	}
 
