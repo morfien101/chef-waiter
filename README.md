@@ -1,8 +1,28 @@
 # Chef Waiter
 
+[![Build Status](https://travis-ci.org/morfien101/chef-waiter.svg?branch=master)](https://travis-ci.org/morfien101/chef-waiter)
+
 A simple HTTP(S) API wrapper around chef client.
 
-[![Build Status](https://travis-ci.org/morfien101/chef-waiter.svg?branch=master)](https://travis-ci.org/morfien101/chef-waiter)
+[What is the Chef Waiter](#what-is-the-chef-waiter)
+
+[How do I use Chef Waiter](#how-do-i-use-chef-waiter)
+
+[Installing](#installing)
+
+[Running](#running)
+
+[Maintenance mode](#maintenance-mode)
+
+[Locking the chef Waiter](#locking-the-chef-waiter)
+
+[Chef service replacement](#chef-service-replacement)
+
+[Example Flow](#example-flow)
+
+[Logging](#logging)
+
+[Metrics](#metrics)
 
 ![waiter](./README/waiter_T.png "chef waiter")
 
@@ -96,7 +116,7 @@ Below is a table describing the API for chef waiter. Chefwaiter was built with e
 | URL | METHOD |Description|
 |-----|--------|------------|
 | /chefclient | GET | Use this to create a run. You will have a json payload returned with a guid for the run.
-| /chefclient | POST | Use this to create a run with a custom recipe string. See chef -o option. The string should be like `"recipe[chefwaiter::test]"`.
+| /chefclient | POST | Use this to create a run with a custom recipe string. See chef -o option. The string should be like `"recipe[chefwaiter::test]"`. It is also possible to override the lock with a query parameter in the URL `force=true`.
 | /chefclient/{guid} | GET | Used with the GUID that you received from /chefclient to get the status of the run.
 | /cheflogs/{guid} | GET | Used with the GUID that you received from /chefclient to get the chef logs from a run.
 | /chef/nextrun | GET | Used to get the time when the next run will happen. This time is the time when the server is free to start the next run and will usually happen with in a minute of this time.
@@ -239,6 +259,16 @@ This is useful for servers that are in production that you wish to protect from 
 Use `/chef/lock` for checking the status of the lock.
 
 `/chef/lock/set` and `/chef/lock/remove` will enable and disable the lock respectively.
+
+The lock can be overridden when running a custom job. This is because the job is already very specific, use with care.
+
+It requires that you send a `force=true` query parameter in the URL when sending requests.
+
+See example below:
+
+```bash
+curl "http://localhost:8901/chefclient?force=true" --data '"recipe[chefwaiter::test]"'
+```
 
 ## Chef service replacement
 

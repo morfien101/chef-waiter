@@ -218,3 +218,79 @@ func TestCustomJob(t *testing.T) {
 		}
 	}
 }
+
+func TestLockWithCustomJob(t *testing.T) {
+	webEngine := genNewHTTPServer(t, true, true)
+
+	tests := []struct {
+		name            string
+		expectedCode    int
+		bytesToSend     []byte
+		locked          bool
+		sendForce       bool
+		sendForceString string
+	}{
+		{
+			name:            "Override lock test",
+			expectedCode:    http.StatusOK,
+			bytesToSend:     []byte(`recipe[chefwaiter::test]`),
+			locked:          true,
+			sendForce:       true,
+			sendForceString: "true",
+		},
+		{
+			name:            "Override lock test with bad string",
+			expectedCode:    http.StatusForbidden,
+			bytesToSend:     []byte(`recipe[chefwaiter::test]`),
+			locked:          true,
+			sendForce:       true,
+			sendForceString: "something_else",
+		},
+		{
+			name:         "Rejected locked",
+			expectedCode: http.StatusForbidden,
+			bytesToSend:  []byte(`recipe[chefwaiter::test]`),
+			locked:       true,
+			sendForce:    false,
+		},
+		{
+			name:         "Accepted not locked",
+			expectedCode: http.StatusOK,
+			bytesToSend:  []byte(`recipe[chefwaiter::test]`),
+			locked:       false,
+			sendForce:    true,
+		},
+	}
+
+	for _, test := range tests {
+
+		w := httptest.NewRecorder()
+		t.Logf("Sending %d bytes in request", len(test.bytesToSend))
+
+		r := httptest.NewRequest(http.MethodPost, url("/chefclient"), bytes.NewReader(test.bytesToSend))
+
+		if test.sendForce {
+			qString := r.URL.Query()
+			qString.Add("force", test.sendForceString)
+			r.URL.RawQuery = qString.Encode()
+		}
+
+		webEngine.state.LockRuns(test.locked)
+
+		webEngine.ServeHTTP(w, r)
+		result := w.Result()
+		bodybytes, err := ioutil.ReadAll(result.Body)
+		if err != nil {
+			t.Logf("Failed to read returned body. Error: %s", bodybytes)
+			t.FailNow()
+		}
+		result.Body.Close()
+
+		// Tests
+		// Test status Code
+		t.Logf("%s", bodybytes)
+		if result.StatusCode != test.expectedCode {
+			t.Errorf("Test %s did not return expected Status Code. Got: %d, Want: %d", test.name, w.Result().StatusCode, test.expectedCode)
+		}
+	}
+}

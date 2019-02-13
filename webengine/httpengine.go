@@ -142,10 +142,23 @@ func (e *HTTPEngine) registerChefRun(w http.ResponseWriter, r *http.Request) {
 
 func (e *HTTPEngine) registerChefCustomRun(w http.ResponseWriter, r *http.Request) {
 	setContentJSON(w)
-	if e.state.ReadRunLock() {
-		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprint(w, "{\"Error\":\"Chefwaiter is locked\"}\n")
-		return
+
+	checklock := true
+
+	// Check if the server is locked unless we have an override URL parameter available.
+	if value, ok := r.URL.Query()["force"]; ok {
+		if value[0] == "true" {
+			checklock = false
+			logs.DebugMessage(fmt.Sprintln("registerChefCustomRun() running regardless of lock."))
+		}
+	}
+
+	if checklock {
+		if e.state.ReadRunLock() {
+			w.WriteHeader(http.StatusForbidden)
+			fmt.Fprint(w, "{\"Error\":\"Chefwaiter is locked\"}\n")
+			return
+		}
 	}
 
 	defer r.Body.Close()
@@ -265,13 +278,13 @@ func (e *HTTPEngine) setChefRunInterval(w http.ResponseWriter, r *http.Request) 
 	vars := mux.Vars(r)
 	i, err := strconv.Atoi(vars["i"])
 	if err != nil || i < 0 {
-		e.logger.Errorf("/chef/interval/%s is not a postive number", vars["i"])
+		e.logger.Errorf("/chef/interval/%s is not a positive number", vars["i"])
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "{\"error\":\"Only a positive number will be accepted.\"}\n")
 		return
 	}
 	if i <= 0 {
-		e.logger.Errorf("/chef/interval/%s is not a postive number", vars["i"])
+		e.logger.Errorf("/chef/interval/%s is not a positive number", vars["i"])
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "{\"error\":\"Only a positive number will be accepted.\"}\n")
 		return
