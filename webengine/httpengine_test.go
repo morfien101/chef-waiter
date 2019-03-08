@@ -294,3 +294,70 @@ func TestLockWithCustomJob(t *testing.T) {
 		}
 	}
 }
+
+func TestCustomJobWhiteList(t *testing.T) {
+	webEngine := genNewHTTPServer(t, true, true)
+
+	tests := []struct {
+		name             string
+		whitelistEnabled bool
+		whitelist        []string
+		bytesToSend      []byte
+		expectedCode     int
+	}{
+		{
+			name:             "Without whitelist",
+			whitelistEnabled: false,
+			bytesToSend:      []byte(`recipe[chefwaiter::test]`),
+			expectedCode:     200,
+		},
+		{
+			name:             "Fail With whitelist",
+			whitelistEnabled: true,
+			bytesToSend:      []byte(`recipe[chefwaiter::test]`),
+			whitelist:        []string{"block"},
+			expectedCode:     403,
+		},
+		{
+			name:             "Pass With whitelist",
+			whitelistEnabled: true,
+			bytesToSend:      []byte(`recipe[chefwaiter::test]`),
+			whitelist:        []string{"recipe[chefwaiter::test]"},
+			expectedCode:     200,
+		},
+		{
+			name:             "Fail no whitelist set",
+			whitelistEnabled: true,
+			bytesToSend:      []byte(`recipe[chefwaiter::test]`),
+			expectedCode:     200,
+		},
+	}
+
+	for _, test := range tests {
+
+		webEngine.whitelists.use = test.whitelistEnabled
+
+		if len(test.whitelist) > 0 {
+			webEngine.SetWhitelist(test.whitelist)
+		}
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodPost, url("/chefclient"), bytes.NewReader(test.bytesToSend))
+
+		webEngine.ServeHTTP(w, r)
+		result := w.Result()
+		bodybytes, err := ioutil.ReadAll(result.Body)
+		if err != nil {
+			t.Logf("Failed to read returned body. Error: %s", bodybytes)
+			t.FailNow()
+		}
+		result.Body.Close()
+
+		// Tests
+		// Test status Code
+		t.Logf("%s", bodybytes)
+		if result.StatusCode != test.expectedCode {
+			t.Errorf("Test %s did not return expected Status Code. Got: %d, Want: %d", test.name, w.Result().StatusCode, test.expectedCode)
+		}
+	}
+}

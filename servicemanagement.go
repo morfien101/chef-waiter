@@ -104,6 +104,11 @@ func (p *program) run() error {
 
 	// Start the HTTP Engine
 	httpEngine := webengine.New(state, appState, workers, chefLogWorker, logger)
+	if runningConfig.WhiteListCustomRuns() {
+		if len(runningConfig.AllowedCustomRuns()) > 0 {
+			httpEngine.SetWhitelist(runningConfig.AllowedCustomRuns())
+		}
+	}
 	listenString := fmt.Sprintf("%s:%d", runningConfig.ListenAddress(), runningConfig.ListenPort())
 	if runningConfig.TLSEnabled() {
 		logs.DebugMessage("Starting Web Server with TLS Supported StartHTTPSEngine() function.")

@@ -12,6 +12,8 @@ A simple HTTP(S) API wrapper around chef client.
 
 [Running](#running)
 
+[Configuration File](#configuration-file)
+
 [Maintenance mode](#maintenance-mode)
 
 [Locking the chef Waiter](#locking-the-chef-waiter)
@@ -136,6 +138,19 @@ Below is a table describing the API for chef waiter. Chefwaiter was built with e
 |/_status | GET | Returns a epoch time from the time that the server was started. It can be used to infer a restart.
 | /healthcheck | GET | Returns a 200 OK to show that the server is online.
 
+## Custom Runs
+
+Chef waiter is able to do custom runs which allow you run recipes once without change the default run list.
+This is useful when you want to run a subset of recipes or to bootstrap a machine then run a maintenance recipe the rest of the time.
+
+It is important to consider the security implications of this. This effectively allows the chef waiter to run ANY recipe on your chef server once for each request.
+
+With this in mind the configuration has a toggle that allows you to whitelist the text that you are allowed to post the chef waiter when requesting a custom run.
+
+The text that you send needs to match exactly what you put in your whitelists. The whitelist is a list so many options can be made available.
+
+See the [Configuration File](#configuration-file) for more details.
+
 ## Installing
 
 ### Preferred option
@@ -217,7 +232,12 @@ An example file is below:
     "metrics_default_tags": {
         "tag_name": "value",
         "tag_name": "value"
-    }
+    },
+    "whitelist_custom_runs": true,
+    "allowed_custom_runs": [
+        "role[chefwaiter]",
+        "recipe[deploy_new_app]"
+    ]
 }
 ```
 
@@ -237,6 +257,8 @@ Default Configuration settings:
 metrics_enabled | false | false | Turn on the statsd metric shipper.
 metrics_host | 127.0.0.1:8125 | 127.0.0.1:8125 | Location of the statsd server.
 metrics_default_tags | nil | nil | Custom tags that you would like to add in key value pairs.
+| whitelist_custom_runs | false | false | Turn on the whitelist for custom runs.
+| allowed_custom_runs | nil | nil | A list of the text that chef waiter will accept for white listing the custom runs.
 
 ## Maintenance mode
 

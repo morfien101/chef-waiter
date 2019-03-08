@@ -20,7 +20,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//var logger = logs.Logger
+type customRunWhitelist struct {
+	whitelist []string
+	use       bool
+}
 
 // HTTPEngine holds all the requires types and functions for the API to work.
 type HTTPEngine struct {
@@ -31,6 +34,7 @@ type HTTPEngine struct {
 	worker         chefrunner.Worker
 	chefLogsWorker cheflogs.WorkerReader
 	server         *http.Server
+	whitelists     *customRunWhitelist
 }
 
 // New returns a struct that holds the required details for the API engine.
@@ -49,6 +53,7 @@ func New(
 		worker:         worker,
 		chefLogsWorker: chefLogsWorker,
 		router:         mux.NewRouter(),
+		whitelists:     &customRunWhitelist{whitelist: []string{}},
 	}
 
 	httpEngine.router.HandleFunc("/chefclient", httpEngine.registerChefRun).Methods("Get")
@@ -76,6 +81,12 @@ func New(
 	return httpEngine
 }
 
+// SetWhitelist is used to tell the server what custom runs are allowed.
+func (e *HTTPEngine) SetWhitelist(whitelist []string) {
+	e.whitelists.whitelist = whitelist
+	e.whitelists.use = true
+}
+
 // StartHTTPEngine will start the web server in a nonTLS mode.
 // It also requires that the listening address be passes in as a string.
 // Should be used in a go routine.
@@ -98,8 +109,8 @@ func (e *HTTPEngine) StartHTTPSEngine(listenerAddress, certPath, keyPath string)
 // It will give the server 5 seconds before just terminating it.
 func (e *HTTPEngine) StopHTTPEngine() error {
 	// Stop the HTTP Engine
-	ctx, cancleFunc := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancleFunc()
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelFunc()
 	return e.server.Shutdown(ctx)
 }
 
@@ -175,7 +186,22 @@ func (e *HTTPEngine) registerChefCustomRun(w http.ResponseWriter, r *http.Reques
 		fmt.Fprint(w, "{\"Error\":\"Body sent is too large. Max size 512 bytes.\"}\n")
 		return
 	}
-	guid := e.worker.CustomRun(string(bytes.TrimRight(bodySlurp, "\x00")))
+	customRunText := string(bytes.TrimRight(bodySlurp, "\x00"))
+	if e.whitelists.use {
+		matched := false
+		for _, whitelistText := range e.whitelists.whitelist {
+			if customRunText == whitelistText {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			w.WriteHeader(http.StatusForbidden)
+			fmt.Fprintf(w, "{\"Error\":\"Whitelist does not contain <%s>'.\"}\n", customRunText)
+			return
+		}
+	}
+	guid := e.worker.CustomRun(customRunText)
 	logs.DebugMessage(fmt.Sprintf("registerChefCustomRun() - %s", guid))
 	jsonbytes, err := jsonMarshal(e.state.Read(guid))
 	if err != nil {

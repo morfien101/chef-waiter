@@ -22,6 +22,8 @@ type Config interface {
 	TLSEnabled() bool
 	CertPath() string
 	KeyPath() string
+	WhiteListCustomRuns() bool
+	AllowedCustomRuns() []string
 }
 
 func (vc *ValuesContainer) StateTableSize() int {
@@ -90,22 +92,36 @@ func (vc *ValuesContainer) KeyPath() string {
 	return vc.InternalKeyPath
 }
 
+func (vc *ValuesContainer) WhiteListCustomRuns() bool {
+	vc.RLock()
+	defer vc.RUnlock()
+	return vc.InternalWhiteListCustomRuns
+}
+
+func (vc *ValuesContainer) AllowedCustomRuns() []string {
+	vc.RLock()
+	defer vc.RUnlock()
+	return vc.InternalAllowedCustomRuns
+}
+
 // ValuesContainer is a struct that holds the values of the configuration file.
 type ValuesContainer struct {
-	InternalStateTableSize    int               `json:"state_table_size"`
-	InternalControlChefRun    bool              `json:"periodic_chef_runs"`
-	InternalPeriodicTimer     int64             `json:"run_interval"`
-	InternalDebug             bool              `json:"debug"`
-	InternalLogLocation       string            `json:"logs_location"`
-	InternalStateFileLocation string            `json:"state_location"`
-	InternalListenPort        int               `json:"listen_port"`
-	InternalListenAddress     string            `json:"listen_address"`
-	InternalTLSEnabled        bool              `json:"enable_tls"`
-	InternalCertPath          string            `json:"certificate_path"`
-	InternalKeyPath           string            `json:"key_path"`
-	MetricsEnabled            bool              `json:"metrics_enabled"`
-	MetricsHost               string            `json:"metrics_host"`
-	MetricsDefaultTags        map[string]string `json:"metrics_default_tags"`
+	InternalStateTableSize      int               `json:"state_table_size"`
+	InternalControlChefRun      bool              `json:"periodic_chef_runs"`
+	InternalPeriodicTimer       int64             `json:"run_interval"`
+	InternalDebug               bool              `json:"debug"`
+	InternalLogLocation         string            `json:"logs_location"`
+	InternalStateFileLocation   string            `json:"state_location"`
+	InternalListenPort          int               `json:"listen_port"`
+	InternalListenAddress       string            `json:"listen_address"`
+	InternalTLSEnabled          bool              `json:"enable_tls"`
+	InternalCertPath            string            `json:"certificate_path"`
+	InternalKeyPath             string            `json:"key_path"`
+	MetricsEnabled              bool              `json:"metrics_enabled"`
+	MetricsHost                 string            `json:"metrics_host"`
+	MetricsDefaultTags          map[string]string `json:"metrics_default_tags"`
+	InternalWhiteListCustomRuns bool              `json:"whitelist_custom_runs"`
+	InternalAllowedCustomRuns   []string          `json:"allowed_custom_runs"`
 	sync.RWMutex
 }
 
