@@ -145,7 +145,7 @@ func (e *HTTPEngine) registerChefRun(w http.ResponseWriter, r *http.Request) {
 	jsonBytes, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "{\"Error\":\"Failed to read guid status.\"}\n")
+		fmt.Fprint(w, "{\"Error\":\"Failed to read guid status\"}\n")
 		return
 	}
 	printJSON(w, jsonBytes)
@@ -183,7 +183,7 @@ func (e *HTTPEngine) registerChefCustomRun(w http.ResponseWriter, r *http.Reques
 	}
 	if n > 512 {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "{\"Error\":\"Body sent is too large. Max size 512 bytes.\"}\n")
+		fmt.Fprint(w, "{\"Error\":\"Body sent is too large. Max size 512 bytes\"}\n")
 		return
 	}
 	customRunText := string(bytes.TrimRight(bodySlurp, "\x00"))
@@ -197,7 +197,7 @@ func (e *HTTPEngine) registerChefCustomRun(w http.ResponseWriter, r *http.Reques
 		}
 		if !matched {
 			w.WriteHeader(http.StatusForbidden)
-			fmt.Fprintf(w, "{\"Error\":\"Whitelist does not contain <%s>'.\"}\n", customRunText)
+			fmt.Fprintf(w, "{\"Error\":\"Whitelist does not contain '%s'\"}\n", customRunText)
 			return
 		}
 	}
@@ -206,7 +206,7 @@ func (e *HTTPEngine) registerChefCustomRun(w http.ResponseWriter, r *http.Reques
 	jsonbytes, err := jsonMarshal(e.state.Read(guid))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "{\"Error\":\"Failed to read guid status.\"}\n")
+		fmt.Fprint(w, "{\"Error\":\"Failed to read guid status\"}\n")
 		return
 	}
 	printJSON(w, jsonbytes)
@@ -221,7 +221,7 @@ func (e *HTTPEngine) getChefStatus(w http.ResponseWriter, r *http.Request) {
 	jsonBytes, err := jsonMarshal(status)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "{\"Error\":\"Failed to read guid status.\"}\n")
+		fmt.Fprint(w, "{\"Error\":\"Failed to read guid status\"}\n")
 		return
 	}
 	printJSON(w, jsonBytes)
@@ -307,13 +307,13 @@ func (e *HTTPEngine) setChefRunInterval(w http.ResponseWriter, r *http.Request) 
 	if err != nil || i < 0 {
 		e.logger.Errorf("/chef/interval/%s is not a positive number", vars["i"])
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "{\"error\":\"Only a positive number will be accepted.\"}\n")
+		fmt.Fprint(w, "{\"Error\":\"Only a positive number will be accepted\"}\n")
 		return
 	}
 	if i <= 0 {
 		e.logger.Errorf("/chef/interval/%s is not a positive number", vars["i"])
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "{\"error\":\"Only a positive number will be accepted.\"}\n")
+		fmt.Fprint(w, "{\"Error\":\"Only a positive number will be accepted\"}\n")
 		return
 	}
 
@@ -358,7 +358,7 @@ func (e *HTTPEngine) getAllRuns(w http.ResponseWriter, r *http.Request) {
 	jsonJobs, err := json.MarshalIndent(jobs, "", "  ")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "{\"Error\":\"Failed to gather jobs.\"}\n")
+		fmt.Fprint(w, "{\"Error\":\"Failed to gather jobs\"}\n")
 		return
 	}
 	fmt.Fprint(w, string(jsonJobs), "\n")
