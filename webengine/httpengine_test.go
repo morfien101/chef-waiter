@@ -296,8 +296,6 @@ func TestLockWithCustomJob(t *testing.T) {
 }
 
 func TestCustomJobWhiteList(t *testing.T) {
-	webEngine := genNewHTTPServer(t, true, true)
-
 	tests := []struct {
 		name             string
 		whitelistEnabled bool
@@ -329,14 +327,14 @@ func TestCustomJobWhiteList(t *testing.T) {
 			name:             "Fail no whitelist set",
 			whitelistEnabled: true,
 			bytesToSend:      []byte(`recipe[chefwaiter::test]`),
-			expectedCode:     200,
+			expectedCode:     403,
 		},
 	}
 
 	for _, test := range tests {
+		webEngine := genNewHTTPServer(t, true, true)
 
 		webEngine.whitelists.use = test.whitelistEnabled
-
 		if len(test.whitelist) > 0 {
 			webEngine.SetWhitelist(test.whitelist)
 		}
