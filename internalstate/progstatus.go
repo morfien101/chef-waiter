@@ -9,7 +9,7 @@ import (
 	"github.com/morfien101/chef-waiter/logs"
 )
 
-// AppStatusHandler - Hosts the AppStatus in a mutexable struct.
+// AppStatusHandler - Hosts the AppStatus in a mutable struct.
 type AppStatusHandler struct {
 	sync.RWMutex
 	state  *AppStatus
@@ -18,15 +18,18 @@ type AppStatusHandler struct {
 
 // AppStatus - Holds status information about the chef waiter itself.
 type AppStatus struct {
-	ServiceName   string `json:"service_name"`
-	HostName      string `json:"hostname"`
-	Uptime        int64  `json:"uptime"`
-	Version       string `json:"version"`
-	ChefVersion   string `json:"chef_version"`
-	Healthy       bool   `json:"healthy"`
-	InMaintenance bool   `json:"in_maintenance_mode"`
-	LastRunGUID   string `json:"last_run_id"`
-	Locked        bool   `json:"locked"`
+	ServiceName       string   `json:"service_name"`
+	HostName          string   `json:"hostname"`
+	Uptime            int64    `json:"start_time"`
+	Started           string   `json:"start_time_human_readable"`
+	Version           string   `json:"version"`
+	ChefVersion       string   `json:"chef_version"`
+	Healthy           bool     `json:"healthy"`
+	InMaintenance     bool     `json:"in_maintenance_mode"`
+	LastRunGUID       string   `json:"last_run_id"`
+	Locked            bool     `json:"locked"`
+	WhiteListsEnabled bool     `json:"whitelisting_enabled"`
+	WhiteList         []string `json:"whitelisted_payloads"`
 }
 
 // AppStatusReader will show how to use the AppStatusHandler
@@ -37,7 +40,7 @@ type AppStatusReader interface {
 // NewAppStatus - creates a new appStatusHandler struct. It requires a version
 // number to be passed in. This is because the version is held outside of
 // internalstate.
-func NewAppStatus(v string, currentState *StateTable, logger logs.SysLogger) *AppStatusHandler {
+func NewAppStatus(version string, currentState *StateTable, logger logs.SysLogger) *AppStatusHandler {
 	logs.DebugMessage("NewAppStatus()")
 	hn, err := os.Hostname()
 	if err != nil {
@@ -48,12 +51,11 @@ func NewAppStatus(v string, currentState *StateTable, logger logs.SysLogger) *Ap
 	appStatus.logger = logger
 	appStatus.state = &AppStatus{
 		ServiceName: "ChefWaiter",
-		Version:     v,
+		Version:     version,
 		Healthy:     true,
 		HostName:    hn,
 	}
 	appStatus.setTime()
-	appStatus.setVersion(v)
 	go appStatus.reconcileChefVersion()
 	go appStatus.maintenanceMode(currentState)
 	go appStatus.lastRun(currentState)
@@ -61,17 +63,21 @@ func NewAppStatus(v string, currentState *StateTable, logger logs.SysLogger) *Ap
 	return appStatus
 }
 
+// SetWhiteListing is used to display the whitelist out to the status page.
+func (as *AppStatusHandler) SetWhiteListing(enabled bool, currentList []string) {
+	as.state.WhiteListsEnabled = enabled
+	if enabled {
+		as.state.WhiteList = currentList
+	}
+}
+
 // setTime - is used to set the time of the state in AppStatusHandler
 func (as *AppStatusHandler) setTime() {
 	as.Lock()
 	defer as.Unlock()
-	as.state.Uptime = time.Now().Unix()
-}
-
-func (as *AppStatusHandler) setVersion(v string) {
-	as.Lock()
-	defer as.Unlock()
-	as.state.Version = v
+	timeNow := time.Now()
+	as.state.Uptime = timeNow.Unix()
+	as.state.Started = timeNow.Format("Mon Jan 2 2006 - 15:04:05 -0700 MST")
 }
 
 // This is a looping function that will try to update chef waiter status with the version of chef.

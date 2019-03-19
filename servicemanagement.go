@@ -94,6 +94,7 @@ func (p *program) run() error {
 	// Initialize a new state tables
 	state := internalstate.New(runningConfig, chefLogWorker, logger)
 	appState := internalstate.NewAppStatus(VERSION, state, logger)
+	appState.SetWhiteListing(runningConfig.InternalWhiteListCustomRuns, runningConfig.InternalAllowedCustomRuns)
 	// start the job engine that runs the commands.
 	workers := chefrunner.New(state, chefLogWorker, logger)
 
