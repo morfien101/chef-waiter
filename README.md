@@ -135,7 +135,7 @@ Below is a table describing the API for chef waiter. Chefwaiter was built with e
 |/chef/lock| GET | Shows the status of the lock for runs.
 |/chef/lock/set| GET | Turns on the lock for chef runs. Stops any runs from occurring.
 |/chef/lock/remove| GET | Turns off the lock for chef runs. Enables normal operation again.
-|/_status | GET | Returns a epoch time from the time that the server was started. It can be used to infer a restart.
+|/_status | GET | Return status information about the chef waiter.
 | /healthcheck | GET | Returns a 200 OK to show that the server is online.
 
 ## Custom Runs
