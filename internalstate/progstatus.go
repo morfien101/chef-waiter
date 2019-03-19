@@ -18,10 +18,12 @@ type AppStatusHandler struct {
 
 // AppStatus - Holds status information about the chef waiter itself.
 type AppStatus struct {
-	ServiceName       string   `json:"service_name"`
-	HostName          string   `json:"hostname"`
-	Uptime            int64    `json:"start_time"`
-	Started           string   `json:"start_time_human_readable"`
+	ServiceName string `json:"service_name"`
+	HostName    string `json:"hostname"`
+	StartTime   int64  `json:"start_time"`
+	// Uptime is to be deprecated 19/03/2019
+	Uptime            int64    `json:"uptime"`
+	StartTimeHuman    string   `json:"start_time_human_readable"`
 	Version           string   `json:"version"`
 	ChefVersion       string   `json:"chef_version"`
 	Healthy           bool     `json:"healthy"`
@@ -76,8 +78,10 @@ func (as *AppStatusHandler) setTime() {
 	as.Lock()
 	defer as.Unlock()
 	timeNow := time.Now()
+	// Uptime is to be deprecated 19/03/2019
 	as.state.Uptime = timeNow.Unix()
-	as.state.Started = timeNow.Format("Mon Jan 2 2006 - 15:04:05 -0700 MST")
+	as.state.StartTime = timeNow.Unix()
+	as.state.StartTimeHuman = timeNow.Format("Mon Jan 2 2006 - 15:04:05 -0700 MST")
 }
 
 // This is a looping function that will try to update chef waiter status with the version of chef.
