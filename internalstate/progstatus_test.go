@@ -17,8 +17,11 @@ func TestWhiteList(t *testing.T) {
 		whitelist:      true,
 		whitelistItems: []string{"recipe[test]", "role[test::something]"},
 	}
+	stateTableMock := &StateTable{
+		Status: make(map[string]*JobDetails),
+	}
 	logger := logs.NewFakeLogger(false)
-	appState := NewAppStatus("0.0.1", nil, logger)
+	appState := NewAppStatus("0.0.1", stateTableMock, logger)
 	appState.SetWhiteListing(fc.whitelist, fc.whitelistItems)
 	b, err := appState.JSONEncoded()
 	if err != nil {

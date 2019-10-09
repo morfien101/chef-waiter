@@ -7,4 +7,4 @@
 # 0.6.5 not function correctly as documented.
 # The rc service is SysV which means that chefwaiter will start
 # as one of the last services.
-sed -i 's/start on filesystem or runlevel \[2345\]/start on stopped rc/' vendor/github.com/kardianos/service/service_upstart_linux.go
+# sed -i 's/start on filesystem or runlevel \[2345\]/start on stopped rc/' vendor/github.com/kardianos/service/service_upstart_linux.go

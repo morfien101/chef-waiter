@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kardianos/service"
+	"github.com/morfien101/service"
 
 	"github.com/morfien101/chef-waiter/cheflogs"
 	"github.com/morfien101/chef-waiter/chefrunner"
