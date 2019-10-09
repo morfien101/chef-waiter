@@ -1,7 +1,7 @@
 language: go
 install: true
 go:
-- '1.11'
+- '1.13'
 script:
 - go get -u github.com/kardianos/govendor
 - govendor test -v ./...
@@ -18,14 +18,14 @@ branches:
   only:
   - master
   except:
-  - "/\\+travis\\d+$/"
+  - sender = "Travis"
 before_deploy:
 - export PUBDIR=$HOME/publish
 - mkdir $PUBDIR
 - cp -v artifacts/*.tar.gz artifacts/*.zip $PUBDIR
 - git config --local user.name "Travis"
 - git config --local user.email "morfien101@gmail.com"
-- git tag "$(./build.sh -v)+travis$TRAVIS_BUILD_NUMBER" --force
+- git tag "$(./build.sh -v)" --force
 deploy:
   provider: releases
   api_key:
