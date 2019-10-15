@@ -7,6 +7,8 @@ github.com/morfien101/go-statsd v1.2.1 h1:pasCWubEROv/MoU9cLVNq7/AXmlOgJVpADf7Zg
 github.com/morfien101/go-statsd v1.2.1/go.mod h1:BgHjbKpfSmAC/D0l9LaKUxd0zzdOo+G5AwVHjHjDWYs=
 github.com/morfien101/service v1.0.1 h1:nXTxM0qYevtj8xgCLXhvO1qyAiEIqLnQfLvI1lJqpgk=
 github.com/morfien101/service v1.0.1/go.mod h1:85Lf48vFQlTorrLVv0uX8jX3mralIp7E/DzQCBVr9mA=
+github.com/morfien101/service v1.0.4 h1:qoKXhdPuMd/XBh6aqtrbtke2raFWA9PfEzYBpgWVKWM=
+github.com/morfien101/service v1.0.4/go.mod h1:Ub/SUc4NiBwi4QSYC3ngzmm/REWn4tA/L6IthkRvPjc=
 github.com/satori/go.uuid v1.2.0 h1:0uYX9dsZ2yD7q2RtLRtPSdGDWzjeM3TbMJP9utgA0ww=
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
 github.com/spf13/afero v1.2.2 h1:5jhuqJyZCZf2JRofRvN/nIFgIWNzPa3/Vz8mYylgbWc=
