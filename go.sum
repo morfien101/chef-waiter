@@ -5,6 +5,8 @@ github.com/gorilla/mux v1.7.3/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2z
 github.com/kardianos/service v1.0.0/go.mod h1:8CzDhVuCuugtsHyZoTvsOBuvonN/UDBvl0kH+BUxvbo=
 github.com/morfien101/go-statsd v1.2.1 h1:pasCWubEROv/MoU9cLVNq7/AXmlOgJVpADf7ZgdqK34=
 github.com/morfien101/go-statsd v1.2.1/go.mod h1:BgHjbKpfSmAC/D0l9LaKUxd0zzdOo+G5AwVHjHjDWYs=
+github.com/morfien101/go-statsd v1.2.2 h1:5p0Waec3Au3972mFWBr2IKYm5gRFKhc9H7iB/RY/RWM=
+github.com/morfien101/go-statsd v1.2.2/go.mod h1:mv95a74taxNHD8n4tQW9msKYtymSRD53fTvX6lqtGeQ=
 github.com/morfien101/service v1.0.1 h1:nXTxM0qYevtj8xgCLXhvO1qyAiEIqLnQfLvI1lJqpgk=
 github.com/morfien101/service v1.0.1/go.mod h1:85Lf48vFQlTorrLVv0uX8jX3mralIp7E/DzQCBVr9mA=
 github.com/morfien101/service v1.0.4 h1:qoKXhdPuMd/XBh6aqtrbtke2raFWA9PfEzYBpgWVKWM=
