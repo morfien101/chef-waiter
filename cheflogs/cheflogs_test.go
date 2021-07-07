@@ -54,8 +54,12 @@ func TestDeleteOldLogs(t *testing.T) {
 		filesMap := make(map[string]int64)
 
 		for j := 0; j <= configContainer.InternalStateTableSize; j++ {
-			guid := uuid.NewV4().String()
-			_, err := os.Create(fmt.Sprintf("%s/%s.log", logsPath, guid))
+			ui, err := uuid.NewV4()
+			if err != nil {
+				t.Fatalf("Failed to generate UUIDv4. Error: %s", err)
+			}
+			guid := ui.String()
+			_, err = os.Create(fmt.Sprintf("%s/%s.log", logsPath, guid))
 			if err != nil {
 				t.Fatalf("Failed to create a test file. Error: %s", err)
 			}
