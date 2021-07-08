@@ -234,7 +234,7 @@ func (st *StateTable) RegisterRun(onDemand, customRun bool, customString string)
 
 	// If the guid has not been set then get one.
 	if len(guid) < 1 {
-		guid = uuid.NewV4().String()
+		guid = uuid.Must(uuid.NewV4()).String()
 		if customRun {
 			st.AddCustom(guid, customString)
 		} else {

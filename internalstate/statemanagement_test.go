@@ -18,7 +18,7 @@ func TestGetOldStates(t *testing.T) {
 	var i int64
 
 	for i = 1; i <= theLarge; i++ {
-		runs[uuid.NewV4().String()] = int64(i)
+		runs[uuid.Must(uuid.NewV4()).String()] = int64(i)
 	}
 	delSlice := st.GetOldStates(runs)
 
